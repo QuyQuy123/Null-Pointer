@@ -6,7 +6,7 @@ Tài liệu này là bản đồ chung cho ba ứng dụng độc lập của NH
 
 | Ứng dụng | Thời điểm sử dụng | Người dùng chính | Công việc quan trọng nhất |
 |---|---|---|---|
-| [Điều phối hành trình khám và xét nghiệm](ui-benh-nhan.md) | Sau khi bác sĩ ký chỉ định | Bệnh nhân hoặc người thân | Chọn ưu tiên, so sánh thứ tự đi các khoa/phòng và thực hiện đúng từng bước |
+| [Điều phối hành trình khám và xét nghiệm](ui-benh-nhan.md) | Sau khi bác sĩ ký chỉ định | Bệnh nhân hoặc người thân | Chọn một trong ba kiểu xếp lịch trình, so sánh thứ tự đi các khoa/phòng và thực hiện đúng từng bước |
 | [NHỊP HẸN](ui-lich-hen.md) | Trước ngày đến bệnh viện | Bệnh nhân hoặc người thân | So sánh và tự nguyện đổi sang giờ ít đông hơn |
 | [Trung tâm điều phối](ui-bang-dieu-hanh.md) | Trong ngày vận hành | Điều phối viên bệnh viện | Phát hiện điểm nghẽn, phê duyệt điều phối và xử lý sự cố |
 
@@ -36,7 +36,7 @@ Ba ứng dụng dùng chung một lõi điều phối nhưng không dùng chung 
 ### 2.3. Bệnh nhân được lựa chọn
 
 - Một trong các lộ trình đã được xác nhận an toàn.
-- Ưu tiên nhanh nhất, ít đi bộ hoặc khu chờ ít đông.
+- Chọn một trong ba kiểu xếp lịch trình: Cân bằng, Hoàn tất xét nghiệm sớm hoặc Ra viện sớm.
 - Đồng ý hoặc từ chối đổi giờ hẹn.
 - Đồng ý hoặc từ chối đổi phòng khi có sự cố, nếu kế hoạch cũ vẫn an toàn.
 - Kênh nhận thông báo và nhu cầu hỗ trợ di chuyển.
@@ -57,7 +57,7 @@ Hệ thống lịch bệnh viện
 Bệnh nhân đến khám
 → Bác sĩ ký chỉ định
 → Ứng dụng điều phối hành trình nhận các dịch vụ bắt buộc
-→ Bệnh nhân chọn điều ưu tiên và một phương án trọn tuyến hợp lệ
+→ Bệnh nhân chọn một trong ba kiểu xếp lịch trình và một phương án trọn tuyến hợp lệ
 → Bệnh nhân có thể đổi một phòng tương đương; hệ thống tính lại toàn tuyến
 → Giữ chỗ và thực hiện từng bước
 → Quay lại bác sĩ khi đủ kết quả
@@ -195,7 +195,7 @@ Thang cỡ chữ:
 ### 8.1. Ứng dụng Điều phối hành trình khám và xét nghiệm
 
 1. Nhận chỉ định mới.
-2. Chọn ưu tiên và so sánh ba lộ trình hợp lệ.
+2. Chọn Cân bằng, Hoàn tất xét nghiệm sớm hoặc Ra viện sớm rồi so sánh ba lộ trình hợp lệ.
 3. Xem thứ tự, lý do đề xuất và đổi một phòng tương đương.
 4. Giữ chỗ, xác nhận và theo dõi từng bước.
 5. Nhận thay đổi khi X-quang gặp sự cố.
@@ -229,7 +229,7 @@ NHỊP HẸN phát hiện 08:00 quá tải
 
 Phần 2 – Sau khi bác sĩ khám
 Bác sĩ ký chỉ định lấy máu, X-quang và siêu âm
-→ Bệnh nhân chọn ưu tiên hoàn tất sớm
+→ Bệnh nhân chọn kiểu Ra viện sớm
 → Ứng dụng đề xuất lấy máu → X-quang → siêu âm
 → Bệnh nhân xem lý do và xác nhận
 → Hệ thống giữ chỗ
