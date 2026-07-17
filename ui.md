@@ -1,820 +1,260 @@
-# UI/UX Specification - MediFlow AI
+# ĐẶC TẢ TỔNG THỂ GIAO DIỆN NHỊP VIỆN
+
+## 1. Mục đích của tài liệu
+
+Tài liệu này là bản đồ chung cho ba ứng dụng độc lập của NHỊP VIỆN. Mỗi ứng dụng phục vụ một thời điểm và một nhóm người dùng khác nhau:
+
+| Ứng dụng | Thời điểm sử dụng | Người dùng chính | Công việc quan trọng nhất |
+|---|---|---|---|
+| [Điều phối hành trình khám và xét nghiệm](ui-benh-nhan.md) | Sau khi bác sĩ ký chỉ định | Bệnh nhân hoặc người thân | Chọn ưu tiên, so sánh thứ tự đi các khoa/phòng và thực hiện đúng từng bước |
+| [NHỊP HẸN](ui-lich-hen.md) | Trước ngày đến bệnh viện | Bệnh nhân hoặc người thân | So sánh và tự nguyện đổi sang giờ ít đông hơn |
+| [Trung tâm điều phối](ui-bang-dieu-hanh.md) | Trong ngày vận hành | Điều phối viên bệnh viện | Phát hiện điểm nghẽn, phê duyệt điều phối và xử lý sự cố |
 
-## 1. Tổng quan vai trò trong hệ thống
+Ba ứng dụng dùng chung một lõi điều phối nhưng không dùng chung cấu trúc màn hình. Ứng dụng bệnh nhân ưu tiên điện thoại và sự đơn giản. Ứng dụng đặt lịch ưu tiên so sánh rõ ràng. Bảng điều hành ưu tiên máy tính để bàn và mật độ dữ liệu cao.
 
-MediFlow AI được thiết kế như một **lớp điều phối thông minh** kết nối với các hệ thống bệnh viện đã có sẵn như hệ thống đặt lịch, check-in, HIS/EMR, LIS, RIS/PACS, hệ thống số thứ tự và trạng thái phòng khám/thiết bị.
+---
 
-Hệ thống không thay thế hoàn toàn phần mềm đặt lịch hiện tại. Thay vào đó, MediFlow AI sử dụng dữ liệu lịch hẹn và vận hành để phân tích tải, dự báo thời gian chờ, gợi ý đổi lịch, điều phối luồng bệnh nhân và hỗ trợ bệnh viện ra quyết định theo thời gian thực.
+## 2. Ranh giới trách nhiệm
 
-Trong phiên bản MVP/hackathon, hệ thống có 2 role chính:
+### 2.1. Bác sĩ và hệ thống chuyên môn quyết định
 
-1. **Customer / Patient / Bệnh nhân**
-   - Người sử dụng app/web để theo dõi lịch khám, nhận cảnh báo khung giờ đông, xác nhận đổi lịch, xem lộ trình khám và thời gian chờ.
+- Bệnh nhân cần làm dịch vụ gì.
+- Dịch vụ nào bắt buộc.
+- Điều kiện chuẩn bị như nhịn ăn.
+- Quan hệ bắt buộc trước và sau.
+- Mức ưu tiên y tế.
+- Khi nào cần quay lại bác sĩ.
+
+### 2.2. Lõi điều phối NHỊP VIỆN quyết định
+
+- Phòng nào đã được bệnh viện xác nhận đủ khả năng thực hiện dịch vụ.
+- Phương án nào có tổng thời gian hoàn tất thấp hơn.
+- Phương án nào ít di chuyển hơn.
+- Khi nào cần giữ chỗ, tính lại thời gian hoặc tạo cảnh báo.
+- Đề xuất nào phải chuyển cho điều phối viên phê duyệt.
+
+### 2.3. Bệnh nhân được lựa chọn
 
-2. **Admin / Hospital Operator / Quản trị vận hành bệnh viện**
-   - Người quản lý dashboard vận hành, theo dõi tải từng khu vực, cấu hình năng lực phục vụ, xử lý cảnh báo và xem đề xuất điều phối từ AI.
+- Một trong các lộ trình đã được xác nhận an toàn.
+- Ưu tiên nhanh nhất, ít đi bộ hoặc khu chờ ít đông.
+- Đồng ý hoặc từ chối đổi giờ hẹn.
+- Đồng ý hoặc từ chối đổi phòng khi có sự cố, nếu kế hoạch cũ vẫn an toàn.
+- Kênh nhận thông báo và nhu cầu hỗ trợ di chuyển.
+
+Bệnh nhân không phải tự quyết định xét nghiệm nào cần làm, phòng nào đủ chuyên môn hoặc bước nào được phép bỏ qua.
+
+---
+
+## 3. Luồng liên kết ba ứng dụng
 
-## 2. Role Customer - Bệnh nhân
+```text
+Hệ thống lịch bệnh viện
+→ NHỊP HẸN quét các lịch đã đặt
+→ Phát hiện khung giờ đông
+→ Bệnh nhân tự nguyện đổi hoặc giữ lịch
+→ Lịch mới được hệ thống gốc xác nhận
+
+Bệnh nhân đến khám
+→ Bác sĩ ký chỉ định
+→ Ứng dụng điều phối hành trình nhận các dịch vụ bắt buộc
+→ Bệnh nhân chọn điều ưu tiên và một phương án trọn tuyến hợp lệ
+→ Bệnh nhân có thể đổi một phòng tương đương; hệ thống tính lại toàn tuyến
+→ Giữ chỗ và thực hiện từng bước
+→ Quay lại bác sĩ khi đủ kết quả
+
+Trong suốt quá trình
+→ Trung tâm điều phối theo dõi toàn cảnh
+→ Phát hiện quá tải hoặc thiết bị hỏng
+→ Tạo phương án và kiểm tra an toàn
+→ Điều phối viên phê duyệt
+→ Hành trình bệnh nhân được cập nhật
+```
+
+---
+
+## 4. Thuật ngữ dùng chung
+
+| Thuật ngữ | Dịch và giải thích cơ bản |
+|---|---|
+| **UI, User Interface – Giao diện người dùng** | Phần màn hình, nút, biểu mẫu và thông tin mà người dùng trực tiếp nhìn thấy và thao tác. |
+| **UX, User Experience – Trải nghiệm người dùng** | Toàn bộ cảm nhận và mức độ dễ sử dụng của người dùng trong suốt quá trình hoàn thành công việc. |
+| **Dashboard – Bảng điều hành** | Màn hình tổng hợp dữ liệu vận hành, cảnh báo và hành động cần xử lý. |
+| **MVP, Minimum Viable Product – Sản phẩm khả dụng tối thiểu** | Phiên bản nhỏ nhất có đủ chức năng để chứng minh giá trị của ý tưởng. |
+| **Check-in – Xác nhận đã đến** | Thao tác ghi nhận bệnh nhân đã có mặt tại bệnh viện. |
+| **Slot – Khung lịch phục vụ** | Khoảng thời gian dành cho một cuộc hẹn hoặc một lượt sử dụng nguồn lực. |
+| **ETA, Estimated Time to Service – Thời gian dự kiến được phục vụ** | Khoảng thời gian hệ thống dự báo bệnh nhân sẽ được gọi hoặc hoàn tất một bước. |
+| **P50 – Mốc 50 phần trăm** | Mốc mà khoảng một nửa bệnh nhân được phục vụ trước thời điểm đó. |
+| **P90 – Mốc 90 phần trăm** | Mốc mà khoảng 90 phần trăm bệnh nhân được phục vụ trước thời điểm đó; giúp nhìn thấy nhóm chờ lâu. |
+| **QR, Quick Response – Mã phản hồi nhanh** | Mã hình vuông được quét bằng máy ảnh để xác nhận vị trí hoặc mở thông tin. |
+| **SMS, Short Message Service – Tin nhắn văn bản** | Kênh gửi thông báo tới số điện thoại mà không cần điện thoại thông minh. |
+| **Audit log – Nhật ký kiểm toán** | Bản ghi ai đã làm gì, lúc nào, dựa trên dữ liệu và quy tắc nào. |
+| **Accessibility – Khả năng tiếp cận** | Khả năng sử dụng sản phẩm của người có hạn chế về thị lực, vận động, thính lực hoặc nhận thức. |
+| **Responsive design – Thiết kế thích ứng** | Cách bố trí giao diện tự điều chỉnh phù hợp với điện thoại, máy tính bảng và máy tính để bàn. |
+| **Design token – Mã thiết kế dùng chung** | Tên đại diện cho màu, khoảng cách, cỡ chữ hoặc độ bo góc để toàn hệ thống dùng nhất quán. |
+| **AI, Artificial Intelligence – Trí tuệ nhân tạo** | Phần mềm phân tích dữ liệu để dự báo hoặc xếp hạng phương án; trong hệ thống này AI không thay quyết định chuyên môn. |
+| **px, pixel – Điểm ảnh** | Đơn vị nhỏ dùng để mô tả kích thước chữ, khoảng cách và vùng bấm trên màn hình. |
+
+---
+
+## 5. Hệ thiết kế dùng chung
+
+### 5.1. Hướng hình ảnh
+
+Định hướng chung là bình tĩnh, tin cậy, rõ ràng và dễ tiếp cận. Không dùng hiệu ứng kính mờ nặng, màu tím hồng gợi cảm giác sản phẩm AI chung chung hoặc chuyển động trang trí liên tục.
 
-### 2.1. Mục tiêu của Customer
+Yếu tố nhận diện là **đường hành trình bệnh viện**:
 
-Customer cần có một trải nghiệm đơn giản, rõ ràng và chủ động. Bệnh nhân không cần hiểu thuật toán phía sau, chỉ cần biết:
+- Trong ứng dụng bệnh nhân, đường này là tuyến dọc gồm các trạm dịch vụ.
+- Trong ứng dụng lịch hẹn, đường này trở thành dải thời gian theo khung giờ.
+- Trong bảng điều hành, đường này trở thành bản đồ dòng bệnh nhân giữa các khoa.
+
+Mỗi trạm luôn có tên, trạng thái và hành động rõ ràng. Màu sắc chỉ hỗ trợ nhận biết, không thay thế chữ.
 
-- Lịch khám hiện tại của mình là khi nào.
-- Khung giờ đó có đông hay không.
-- Có khung giờ nào tốt hơn để đổi lịch không.
-- Khi đến bệnh viện, mình cần đi đâu trước.
-- Mình đang ở bước nào trong hành trình khám.
-- Còn chờ bao lâu nữa.
-- Khi nào cần di chuyển sang khu vực tiếp theo.
+### 5.2. Bảng màu
 
-### 2.2. Các chức năng chính của Customer
+| Mã thiết kế | Màu | Ý nghĩa |
+|---|---|---|
+| `mau-chinh` | `#0E7490` | Nút chính, liên kết và điểm nhấn điều phối |
+| `mau-chinh-dam` | `#155E75` | Trạng thái nhấn, tiêu đề nổi bật |
+| `mau-xac-nhan` | `#047857` | Hoàn tất, xác nhận thành công |
+| `mau-canh-bao` | `#B45309` | Gần quá tải hoặc cần chú ý |
+| `mau-nguy-hiem` | `#B91C1C` | Sự cố nghiêm trọng hoặc lỗi |
+| `mau-thong-tin` | `#1D4ED8` | Thông tin trung tính cần lưu ý |
+| `nen-chung` | `#F0FDFA` | Nền tổng thể sáng và dịu |
+| `nen-the` | `#FFFFFF` | Nền thẻ và vùng nội dung |
+| `chu-chinh` | `#0F172A` | Chữ nội dung chính |
+| `chu-phu` | `#475569` | Chữ giải thích phụ |
+| `duong-vien` | `#B8D8DE` | Đường chia và viền thành phần |
 
-#### 2.2.1. Xem lịch khám đã có
+Tất cả cặp màu chữ và nền phải đạt tỷ lệ tương phản tối thiểu 4,5:1. Trạng thái không chỉ được thể hiện bằng đỏ, vàng hoặc xanh; phải có thêm biểu tượng và chữ.
 
-Vì hệ thống đặt lịch đã tồn tại bên ngoài, MediFlow AI chỉ nhận dữ liệu lịch hẹn từ hệ thống đó.
+### 5.3. Kiểu chữ
 
-Bệnh nhân có thể xem:
-
-- Ngày khám.
-- Giờ khám.
-- Chuyên khoa.
-- Bác sĩ hoặc phòng khám nếu có.
-- Mục đích khám.
-- Trạng thái lịch hẹn: sắp tới, cần xác nhận, đã đổi lịch, đã check-in, đã hoàn tất.
-- Dự báo mức độ đông tại khung giờ đó.
-
-#### 2.2.2. Nhận cảnh báo khung giờ đông
-
-Khi AI phát hiện lịch hẹn của bệnh nhân nằm trong khung giờ có nguy cơ quá tải, hệ thống gửi thông báo.
-
-Ví dụ thông báo:
-
-> Khung giờ 08:00 - 09:00 tại Khoa Tim mạch đang có lượng bệnh nhân cao. Nếu chuyển sang 10:00, thời gian chờ dự kiến có thể giảm khoảng 25 phút.
-
-Bệnh nhân có thể chọn:
-
-- Đổi sang khung giờ được gợi ý.
-- Xem thêm khung giờ khác.
-- Giữ lịch hiện tại.
-
-#### 2.2.3. Gợi ý đổi lịch thông minh
-
-MediFlow AI không tự động đổi lịch nếu chưa có sự đồng ý của bệnh nhân.
-
-Hệ thống chỉ gợi ý các khung giờ tốt hơn dựa trên:
-
-- Mật độ bệnh nhân theo khung giờ.
-- Năng lực bác sĩ/phòng khám.
-- Lịch trống từ hệ thống đặt lịch gốc.
-- Dự báo thời gian chờ.
-- Dịch vụ cận lâm sàng có thể cần thực hiện trước.
-
-Sau khi bệnh nhân chọn khung giờ mới, MediFlow AI gửi yêu cầu cập nhật về hệ thống đặt lịch hiện có.
-
-#### 2.2.4. Check-in và nhận lộ trình khám
-
-Khi bệnh nhân đến bệnh viện và check-in, hệ thống tạo một hành trình khám cá nhân.
-
-Lộ trình có thể gồm:
-
-- Đến quầy tiếp nhận.
-- Gặp bác sĩ.
-- Lấy máu.
-- Chụp X-quang.
-- Siêu âm.
-- Chờ kết quả.
-- Quay lại phòng khám.
-- Thanh toán/nhận thuốc.
-
-Hệ thống hiển thị bước tiếp theo rõ ràng để bệnh nhân không phải tự hỏi hoặc đi nhầm khu vực.
-
-#### 2.2.5. Xem thời gian chờ dự kiến
-
-Ở mỗi bước, bệnh nhân thấy:
-
-- Số người đang chờ trước mình.
-- Thời gian chờ dự kiến.
-- Thời gian phục vụ dự kiến.
-- Trạng thái khu vực: bình thường, hơi đông, quá tải, tạm dừng.
-- Thông báo khi gần đến lượt.
-
-#### 2.2.6. Nhận chỉ đường trong bệnh viện
-
-Sau khi AI xác định điểm đến tiếp theo, bệnh nhân được hướng dẫn di chuyển.
-
-MVP có thể hỗ trợ:
-
-- Bản đồ tầng/khu vực.
-- Hướng dẫn dạng text: "Đi thẳng 20m, rẽ trái tại thang máy, phòng lấy máu ở bên phải."
-- Mã QR tại các vị trí để xác nhận bệnh nhân đang ở đúng khu vực.
-
-Phiên bản mở rộng có thể tích hợp:
-
-- AI Vision để nhận diện vị trí qua ảnh.
-- Bluetooth Beacon nếu bệnh viện có hạ tầng.
-
-#### 2.2.7. Theo dõi trạng thái kết quả
-
-Với các dịch vụ như xét nghiệm hoặc chẩn đoán hình ảnh, bệnh nhân có thể xem trạng thái:
-
-- Đã lấy mẫu.
-- Đang xử lý.
-- Đang chờ bác sĩ đọc kết quả.
-- Kết quả đã sẵn sàng.
-- Có thể quay lại phòng khám.
-
-Hệ thống không cần hiển thị chi tiết y khoa nếu chưa được bác sĩ xác nhận. Chỉ cần hiển thị trạng thái phục vụ cho điều phối hành trình.
-
-### 2.3. Danh sách màn hình Customer
-
-#### Màn hình 1: Đăng nhập / Xác thực bệnh nhân
-
-Mục đích:
-
-- Cho phép bệnh nhân truy cập hành trình khám cá nhân.
-
-Thành phần chính:
-
-- Nhập số điện thoại/mã bệnh nhân.
-- Nhập OTP.
-- Chọn hồ sơ bệnh nhân nếu một tài khoản có nhiều người thân.
-
-Luồng hoạt động:
-
-1. Bệnh nhân nhập số điện thoại hoặc mã bệnh nhân.
-2. Hệ thống gửi OTP.
-3. Bệnh nhân xác thực.
-4. Hệ thống tải lịch hẹn và hành trình khám liên quan.
-
-#### Màn hình 2: Trang chủ Customer
-
-Mục đích:
-
-- Hiển thị tổng quan lịch khám và trạng thái hiện tại.
-
-Thành phần chính:
-
-- Thẻ lịch hẹn sắp tới.
-- Cảnh báo nếu khung giờ đông.
-- Nút xem gợi ý đổi lịch.
-- Trạng thái hành trình nếu đã check-in.
-- Thông báo gần đây.
-
-Luồng hoạt động:
-
-1. Bệnh nhân mở app.
-2. Hệ thống lấy dữ liệu lịch hẹn từ hệ thống đặt lịch.
-3. AI phân tích mức độ đông.
-4. Nếu lịch hẹn bình thường, hiển thị lịch và thời gian dự kiến.
-5. Nếu lịch hẹn đông, hiển thị cảnh báo và đề xuất đổi lịch.
-
-#### Màn hình 3: Chi tiết lịch hẹn
-
-Mục đích:
-
-- Cho bệnh nhân xem thông tin chi tiết về lịch khám hiện tại.
-
-Thành phần chính:
-
-- Ngày, giờ, chuyên khoa, bác sĩ/phòng khám.
-- Địa điểm khám.
-- Mức độ đông của khung giờ.
-- Thời gian chờ dự kiến.
-- Các lưu ý trước khi đến bệnh viện.
-- Nút xem khung giờ thay thế.
-
-Luồng hoạt động:
-
-1. Bệnh nhân chọn lịch hẹn.
-2. Hệ thống hiển thị thông tin lịch hiện tại.
-3. AI hiển thị đánh giá tải: thấp, trung bình, cao.
-4. Nếu tải cao, hệ thống gợi ý đổi lịch.
-
-#### Màn hình 4: Gợi ý đổi lịch
-
-Mục đích:
-
-- Giúp bệnh nhân chọn khung giờ ít đông hơn.
-
-Thành phần chính:
-
-- Lịch hiện tại.
-- Danh sách khung giờ gợi ý.
-- Mức độ đông từng khung giờ.
-- Thời gian chờ dự kiến từng khung giờ.
-- Nút xác nhận đổi lịch.
-- Nút giữ lịch cũ.
-
-Luồng hoạt động:
-
-1. Hệ thống nhận lịch hẹn hiện tại.
-2. AI phân tích các khung giờ còn trống từ hệ thống đặt lịch gốc.
-3. Hệ thống sắp xếp các khung giờ theo mức độ tối ưu.
-4. Bệnh nhân chọn một khung giờ.
-5. Hệ thống gửi yêu cầu đổi lịch về hệ thống đặt lịch gốc.
-6. Nếu thành công, trạng thái lịch được cập nhật.
-7. Nếu thất bại, hệ thống thông báo và gợi ý chọn khung giờ khác.
-
-#### Màn hình 5: Check-in
-
-Mục đích:
-
-- Xác nhận bệnh nhân đã đến bệnh viện và bắt đầu hành trình điều phối.
-
-Thành phần chính:
-
-- Mã QR check-in hoặc nút check-in.
-- Thông tin lịch hẹn.
-- Trạng thái check-in.
-- Điểm đến đầu tiên sau check-in.
-
-Luồng hoạt động:
-
-1. Bệnh nhân đến bệnh viện.
-2. Bệnh nhân quét QR hoặc check-in tại kiosk/quầy.
-3. Hệ thống xác nhận bệnh nhân đã đến.
-4. AI tạo lộ trình khám cá nhân dựa trên dữ liệu hiện tại.
-5. Bệnh nhân được hướng dẫn đến bước đầu tiên.
-
-#### Màn hình 6: Hành trình khám của tôi
-
-Mục đích:
-
-- Hiển thị toàn bộ lộ trình khám theo từng bước.
-
-Thành phần chính:
-
-- Timeline các bước khám.
-- Bước hiện tại.
-- Bước tiếp theo.
-- Thời gian chờ dự kiến.
-- Trạng thái từng bước: chưa bắt đầu, đang chờ, đang thực hiện, đã xong.
-- Nút xem chỉ đường.
-
-Luồng hoạt động:
-
-1. Sau check-in, hệ thống tạo timeline.
-2. Bệnh nhân xem bước hiện tại.
-3. Khi một bước hoàn tất, hệ thống cập nhật bước tiếp theo.
-4. Nếu có thay đổi tải hoặc sự cố, AI tính lại lộ trình.
-5. Bệnh nhân nhận thông báo thay đổi.
-
-#### Màn hình 7: Chỉ đường đến khu vực tiếp theo
-
-Mục đích:
-
-- Giúp bệnh nhân đi đúng khu vực.
-
-Thành phần chính:
-
-- Tên điểm đến.
-- Tầng/khu/phòng.
-- Bản đồ đơn giản.
-- Hướng dẫn từng bước.
-- Mã QR xác nhận vị trí nếu có.
-
-Luồng hoạt động:
-
-1. Bệnh nhân bấm "Xem chỉ đường".
-2. Hệ thống hiển thị tuyến đường đến điểm tiếp theo.
-3. Bệnh nhân di chuyển.
-4. Nếu có QR, bệnh nhân quét tại điểm đến để xác nhận.
-5. Hệ thống cập nhật trạng thái đã đến khu vực.
-
-#### Màn hình 8: Thông báo
-
-Mục đích:
-
-- Tập trung các cập nhật quan trọng cho bệnh nhân.
-
-Thành phần chính:
-
-- Cảnh báo khung giờ đông.
-- Xác nhận đổi lịch.
-- Nhắc check-in.
-- Thông báo gần đến lượt.
-- Thông báo đổi lộ trình.
-- Thông báo kết quả đã sẵn sàng.
-
-Luồng hoạt động:
-
-1. Hệ thống tạo thông báo khi có sự kiện.
-2. Bệnh nhân nhận push notification/SMS/Zalo.
-3. Bệnh nhân mở app để xem chi tiết.
-4. Nếu cần hành động, hệ thống hiển thị nút tương ứng.
-
-### 2.4. Luồng Customer tổng quát
-
-#### Luồng A: Nhận cảnh báo và đổi lịch trước ngày khám
-
-1. Bệnh nhân đã đặt lịch trên hệ thống đặt lịch hiện có.
-2. MediFlow AI đồng bộ dữ liệu lịch hẹn.
-3. AI phát hiện khung giờ của bệnh nhân có nguy cơ đông.
-4. Hệ thống gửi thông báo cho bệnh nhân.
-5. Bệnh nhân mở app và xem các khung giờ thay thế.
-6. Bệnh nhân chọn khung giờ mới.
-7. MediFlow AI gửi yêu cầu cập nhật lịch về hệ thống đặt lịch gốc.
-8. Hệ thống xác nhận đổi lịch thành công.
-9. Bệnh nhân nhận lịch mới.
-
-#### Luồng B: Giữ lịch cũ
-
-1. Bệnh nhân nhận cảnh báo khung giờ đông.
-2. Bệnh nhân chọn giữ lịch cũ.
-3. Hệ thống ghi nhận lựa chọn.
-4. Trước ngày khám, hệ thống vẫn có thể gửi nhắc nhở đến sớm hơn nếu cần.
-
-#### Luồng C: Check-in và nhận lộ trình khám
-
-1. Bệnh nhân đến bệnh viện.
-2. Bệnh nhân check-in.
-3. Hệ thống lấy trạng thái thực tế của phòng khám, xét nghiệm và chẩn đoán hình ảnh.
-4. AI tạo lộ trình tối ưu.
-5. Bệnh nhân nhận bước tiếp theo và thời gian chờ.
-6. Khi hoàn thành từng bước, hệ thống cập nhật timeline.
-7. Bệnh nhân quay lại bác sĩ khi tất cả kết quả cần thiết đã sẵn sàng.
-
-#### Luồng D: Lộ trình bị thay đổi do sự cố
-
-1. Bệnh nhân đang trong hành trình khám.
-2. Một thiết bị bị lỗi hoặc khu vực quá tải.
-3. Admin cập nhật trạng thái hoặc hệ thống tự nhận sự kiện.
-4. AI tính lại lộ trình.
-5. Bệnh nhân nhận thông báo: "Lộ trình của bạn đã được cập nhật."
-6. App hiển thị điểm đến mới và thời gian chờ mới.
-
-## 3. Role Admin - Quản trị vận hành bệnh viện
-
-### 3.1. Mục tiêu của Admin
-
-Admin cần có một góc nhìn tổng quan và có khả năng can thiệp vận hành nhanh. Admin không chỉ quản lý tài khoản, mà chủ yếu quản lý trạng thái vận hành của bệnh viện.
-
-Admin cần biết:
-
-- Khu vực nào đang đông.
-- Khu vực nào còn trống.
-- Phòng khám hoặc thiết bị nào đang quá tải.
-- Có bao nhiêu bệnh nhân đang chờ.
-- Thời gian chờ trung bình là bao lâu.
-- AI đang đề xuất điều phối gì.
-- Có sự cố nào cần xử lý ngay không.
-
-### 3.2. Các chức năng chính của Admin
-
-#### 3.2.1. Dashboard tổng quan
-
-Admin xem toàn cảnh vận hành của bệnh viện theo thời gian thực.
-
-Thông tin chính:
-
-- Tổng số bệnh nhân đã check-in.
-- Số bệnh nhân đang chờ.
-- Số bệnh nhân đang thực hiện dịch vụ.
-- Số bệnh nhân đã hoàn tất.
-- Thời gian chờ trung bình toàn viện.
-- Các khu vực quá tải.
-- Các cảnh báo đang mở.
-
-#### 3.2.2. Theo dõi tải từng khoa/phòng
-
-Admin có thể xem trạng thái từng khu vực:
-
-- Phòng khám chuyên khoa.
-- Khu lấy máu.
-- Khu xét nghiệm.
-- Siêu âm.
-- X-quang.
-- CT.
-- MRI.
-- Quầy thanh toán.
-- Nhà thuốc.
-
-Mỗi khu vực hiển thị:
-
-- Số bệnh nhân đang chờ.
-- Thời gian chờ trung bình.
-- Công suất hiện tại.
-- Số nhân sự/thiết bị đang hoạt động.
-- Trạng thái: bình thường, gần quá tải, quá tải, tạm dừng.
-
-#### 3.2.3. Theo dõi trạng thái phòng, thiết bị và nhân sự
-
-Trạng thái phòng, thiết bị và lịch làm việc của bác sĩ được quản lý bởi hệ thống vận hành riêng. Màn hình này không yêu cầu Admin cập nhật thủ công các trạng thái đó.
-
-Hệ thống chỉ đồng bộ và hiển thị các trạng thái liên quan để AI điều phối sử dụng, bao gồm:
-
-- Phòng đang hoạt động hoặc tạm dừng.
-- Thiết bị đang hoạt động, lỗi hoặc bảo trì.
-- Bác sĩ tạm nghỉ hoặc đổi lịch.
-
-Khi dữ liệu đồng bộ thay đổi, AI tự động tính lại lộ trình cho các bệnh nhân bị ảnh hưởng.
-
-#### 3.2.4. Xem đề xuất điều phối từ AI
-
-AI có thể đề xuất:
-
-- Chuyển một phần bệnh nhân sang phòng cùng chức năng ít đông hơn.
-- Gợi ý bệnh nhân đổi lịch trước ngày khám.
-- Điều chỉnh thứ tự dịch vụ cho một nhóm bệnh nhân.
-- Cảnh báo khu vực sắp quá tải trong 30-60 phút tới.
-- Tạm ngừng nhận thêm bệnh nhân vào một khu vực quá tải.
-
-Các đề xuất hợp lệ sẽ được hệ thống tự động áp dụng theo bộ quy tắc điều phối đã cấu hình, không yêu cầu Admin duyệt từng đề xuất.
-
-Admin có thể giám sát các thay đổi đã được áp dụng và chỉ can thiệp trong trường hợp ngoại lệ:
-
-- Tạm dừng tự động áp dụng cho một khu vực hoặc tình huống đặc biệt.
-- Điều chỉnh thủ công khi cần ưu tiên nghiệp vụ hoặc chuyên môn.
-- Ghi chú lý do khi can thiệp thủ công.
-- Xem lịch sử đề xuất, quyết định tự động và các lần can thiệp của Admin.
-
-#### 3.2.5. Quản lý bệnh nhân trong hàng chờ
-
-Admin có thể tìm kiếm và xem trạng thái từng bệnh nhân:
-
-- Thông tin lịch hẹn.
-- Trạng thái check-in.
-- Bước hiện tại.
-- Bước tiếp theo.
-- Thời gian chờ dự kiến.
-- Lộ trình được AI đề xuất.
-- Lịch sử thay đổi lộ trình.
-
-Admin có thể hỗ trợ điều chỉnh thủ công trong các trường hợp đặc biệt.
-
-#### 3.2.6. Cấu hình quy tắc điều phối
-
-Admin cấu hình các thông số nền:
-
-- Thời gian xử lý trung bình của từng dịch vụ.
-- Năng lực phục vụ mỗi phòng.
-- Số bệnh nhân tối đa mỗi khung giờ.
-- Quy tắc ưu tiên: cấp cứu, người cao tuổi, phụ nữ mang thai, trẻ em, người khuyết tật.
-- Quy tắc chuyên môn: dịch vụ nào phải làm trước, dịch vụ nào có thể làm song song.
-- Thời gian trả kết quả trung bình.
-
-#### 3.2.7. Báo cáo và phân tích
-
-Admin xem báo cáo theo ngày/tuần/tháng:
-
-- Thời gian chờ trung bình.
-- Khu vực thường quá tải.
-- Tỷ lệ sử dụng thiết bị.
-- Số lượt bệnh nhân đổi lịch thành công.
-- Số phút chờ giảm được.
-- Tỷ lệ đúng hẹn.
-- Số lần AI phải tái điều phối.
-
-### 3.3. Danh sách màn hình Admin
-
-#### Màn hình 1: Đăng nhập Admin
-
-Mục đích:
-
-- Bảo vệ quyền truy cập vào dữ liệu vận hành bệnh viện.
-
-Thành phần chính:
-
-- Email/tài khoản nhân viên.
-- Mật khẩu.
-- OTP hoặc xác thực nội bộ nếu cần.
-- Phân quyền: admin tổng, điều phối viên, quản lý khoa.
-
-Luồng hoạt động:
-
-1. Admin đăng nhập.
-2. Hệ thống xác thực quyền.
-3. Hệ thống điều hướng đến dashboard phù hợp với quyền.
-
-#### Màn hình 2: Dashboard tổng quan bệnh viện
-
-Mục đích:
-
-- Cung cấp góc nhìn nhanh về tình trạng toàn viện.
-
-Thành phần chính:
-
-- KPI tổng: tổng bệnh nhân, đang chờ, đang phục vụ, đã hoàn tất.
-- Thời gian chờ trung bình.
-- Heatmap mức độ đông theo khu vực.
-- Danh sách cảnh báo.
-- Biểu đồ tải theo thời gian.
-- Đề xuất AI nổi bật.
-
-Luồng hoạt động:
-
-1. Admin mở dashboard.
-2. Hệ thống tải dữ liệu thời gian thực.
-3. Dashboard hiển thị khu vực bình thường và khu vực có nguy cơ quá tải.
-4. Admin chọn một cảnh báo hoặc khu vực để xem chi tiết.
-
-#### Màn hình 3: Quản lý khu vực/khoa phòng
-
-Mục đích:
-
-- Theo dõi và quản lý từng khu vực vận hành.
-
-Thành phần chính:
-
-- Danh sách khoa/phòng.
-- Trạng thái từng khu vực.
-- Số bệnh nhân chờ.
-- Thời gian chờ trung bình.
-- Công suất hiện tại.
-- Nút xem chi tiết.
-
-Luồng hoạt động:
-
-1. Admin vào màn hình khu vực.
-2. Chọn một khoa/phòng.
-3. Hệ thống hiển thị hàng chờ, nhân sự, thiết bị và cảnh báo liên quan.
-4. Admin có thể cập nhật trạng thái hoặc xem đề xuất điều phối.
-
-#### Màn hình 4: Chi tiết khu vực
-
-Mục đích:
-
-- Quản lý sâu một khoa/phòng cụ thể.
-
-Thành phần chính:
-
-- Tên khu vực.
-- Trạng thái hoạt động.
-- Danh sách phòng/thiết bị.
-- Danh sách bệnh nhân đang chờ.
-- Dự báo tải 30-60 phút tới.
-- Đề xuất của AI.
-- Nút cập nhật trạng thái.
-
-Luồng hoạt động:
-
-1. Admin chọn khu vực, ví dụ X-quang.
-2. Hệ thống hiển thị số bệnh nhân chờ và thiết bị đang hoạt động.
-3. Nếu khu vực quá tải, AI đề xuất phương án.
-4. Admin chấp nhận hoặc chỉnh sửa đề xuất.
-5. Hệ thống cập nhật lộ trình cho bệnh nhân bị ảnh hưởng.
-
-#### Màn hình 5: Quản lý thiết bị và phòng
-
-Mục đích:
-
-- Cập nhật trạng thái phòng khám và thiết bị y tế.
-
-Thành phần chính:
-
-- Danh sách thiết bị/phòng.
-- Loại thiết bị: siêu âm, X-quang, CT, MRI.
-- Trạng thái: hoạt động, tạm dừng, lỗi, bảo trì.
-- Công suất xử lý.
-- Lịch hoạt động.
-- Nút cập nhật trạng thái.
-
-Luồng hoạt động:
-
-1. Admin chọn thiết bị/phòng.
-2. Admin cập nhật trạng thái.
-3. Nếu chuyển sang lỗi/tạm dừng, hệ thống xác định bệnh nhân bị ảnh hưởng.
-4. AI tính lại lộ trình.
-5. Admin xem danh sách tác động và xác nhận.
-
-#### Màn hình 6: Hàng chờ bệnh nhân
-
-Mục đích:
-
-- Theo dõi danh sách bệnh nhân trong toàn bộ luồng khám.
-
-Thành phần chính:
-
-- Tìm kiếm bệnh nhân.
-- Bộ lọc theo khoa/phòng, trạng thái, mức ưu tiên.
-- Danh sách bệnh nhân.
-- Bước hiện tại.
-- Thời gian chờ.
-- Lộ trình tiếp theo.
-
-Luồng hoạt động:
-
-1. Admin mở màn hình hàng chờ.
-2. Lọc theo khu vực hoặc trạng thái.
-3. Chọn một bệnh nhân.
-4. Xem chi tiết hành trình.
-5. Nếu cần, admin can thiệp điều phối thủ công.
-
-#### Màn hình 7: Chi tiết bệnh nhân
-
-Mục đích:
-
-- Xem và hỗ trợ một bệnh nhân cụ thể.
-
-Thành phần chính:
-
-- Thông tin lịch hẹn.
-- Trạng thái check-in.
-- Timeline hành trình.
-- Bước hiện tại.
-- Bước tiếp theo.
-- Thời gian chờ dự kiến.
-- Lịch sử thay đổi lộ trình.
-- Nút gửi thông báo cho bệnh nhân.
-- Nút điều chỉnh lộ trình nếu có quyền.
-
-Luồng hoạt động:
-
-1. Admin tìm bệnh nhân.
-2. Hệ thống hiển thị hành trình hiện tại.
-3. Admin kiểm tra nguyên nhân chờ lâu nếu có.
-4. Admin có thể gửi thông báo hoặc điều chỉnh lộ trình.
-5. Bệnh nhân nhận cập nhật trên app/SMS/Zalo.
-
-#### Màn hình 8: Đề xuất AI
-
-Mục đích:
-
-- Tập trung toàn bộ đề xuất điều phối của AI.
-
-Thành phần chính:
-
-- Danh sách đề xuất.
-- Loại đề xuất: đổi lịch, chuyển luồng, đổi thứ tự dịch vụ, cảnh báo quá tải.
-- Mức độ ảnh hưởng.
-- Số bệnh nhân liên quan.
-- Lợi ích dự kiến: giảm thời gian chờ, giảm tải khu vực.
-- Nút chấp nhận/từ chối/chỉnh sửa.
-
-Luồng hoạt động:
-
-1. AI tạo đề xuất.
-2. Admin nhận cảnh báo.
-3. Admin mở chi tiết đề xuất.
-4. Hệ thống giải thích lý do đề xuất.
-5. Admin chấp nhận, từ chối hoặc chỉnh sửa.
-6. Nếu chấp nhận, hệ thống cập nhật lộ trình/lịch/thông báo cho bệnh nhân.
-
-#### Màn hình 9: Cấu hình quy tắc
-
-Mục đích:
-
-- Cho phép bệnh viện thiết lập các tham số vận hành.
-
-Thành phần chính:
-
-- Thời gian xử lý trung bình từng dịch vụ.
-- Công suất từng phòng.
-- Ngưỡng quá tải.
-- Quy tắc ưu tiên.
-- Quy tắc thứ tự dịch vụ.
-- Thời gian trả kết quả.
-
-Luồng hoạt động:
-
-1. Admin vào cấu hình.
-2. Cập nhật thông số.
-3. Hệ thống kiểm tra hợp lệ.
-4. Admin lưu cấu hình.
-5. AI sử dụng cấu hình mới cho các lần tính toán tiếp theo.
-
-#### Màn hình 10: Báo cáo
-
-Mục đích:
-
-- Đánh giá hiệu quả vận hành sau một khoảng thời gian.
-
-Thành phần chính:
-
-- Bộ lọc ngày/tuần/tháng.
-- Thời gian chờ trung bình.
-- Tải từng khoa/phòng.
-- Tỷ lệ sử dụng thiết bị.
-- Số lượt đổi lịch.
-- Số lượt tái điều phối.
-- So sánh trước/sau khi dùng AI.
-
-Luồng hoạt động:
-
-1. Admin chọn khoảng thời gian.
-2. Hệ thống tổng hợp dữ liệu.
-3. Admin xem biểu đồ và bảng thống kê.
-4. Admin xuất báo cáo nếu cần.
-
-### 3.4. Luồng Admin tổng quát
-
-#### Luồng A: Theo dõi quá tải theo thời gian thực
-
-1. Admin mở dashboard.
-2. Hệ thống hiển thị heatmap tải từng khu vực.
-3. Một khu vực chuyển sang trạng thái gần quá tải.
-4. AI tạo cảnh báo và đề xuất điều phối.
-5. Admin xem chi tiết.
-6. Admin chấp nhận đề xuất.
-7. Hệ thống cập nhật lộ trình bệnh nhân liên quan.
-8. Bệnh nhân nhận thông báo mới.
-
-#### Luồng B: Cập nhật thiết bị bị lỗi
-
-1. Máy X-quang gặp sự cố.
-2. Admin vào màn hình thiết bị.
-3. Admin chuyển trạng thái máy từ hoạt động sang lỗi.
-4. Hệ thống xác định bệnh nhân đang được điều phối tới máy đó.
-5. AI tính lại lộ trình hoặc chuyển sang phòng X-quang khác nếu có.
-6. Admin xác nhận.
-7. Bệnh nhân nhận thông báo thay đổi điểm đến/thời gian chờ.
-
-#### Luồng C: Gợi ý đổi lịch trước ngày khám
-
-1. Hệ thống đồng bộ dữ liệu lịch hẹn ngày mai.
-2. AI phát hiện khung 08:00 - 09:00 của Khoa Tim mạch quá đông.
-3. Hệ thống tạo đề xuất gửi thông báo đổi lịch cho một nhóm bệnh nhân phù hợp.
-4. Admin xem đề xuất.
-5. Admin chấp nhận gửi thông báo.
-6. Bệnh nhân nhận gợi ý đổi lịch.
-7. Những bệnh nhân đồng ý sẽ được cập nhật lịch mới qua hệ thống đặt lịch gốc.
-
-#### Luồng D: Can thiệp thủ công cho bệnh nhân đặc biệt
-
-1. Admin nhận phản ánh một bệnh nhân chờ quá lâu.
-2. Admin tìm bệnh nhân trong màn hình hàng chờ.
-3. Admin xem timeline và nguyên nhân chờ.
-4. Admin kiểm tra đề xuất AI hoặc chọn điều phối thủ công.
-5. Hệ thống cập nhật hành trình.
-6. Bệnh nhân nhận thông báo mới.
-
-## 4. Phân quyền đề xuất
-
-Trong MVP, có thể chỉ cần 2 role:
-
-- **Customer**: dùng app/web để nhận thông báo, đổi lịch, check-in và theo dõi hành trình.
-- **Admin**: quản lý dashboard, cấu hình hệ thống, cập nhật trạng thái và xác nhận đề xuất AI.
-
-Trong phiên bản mở rộng, Admin có thể tách thành:
-
-- **Hospital Manager**: xem báo cáo, cấu hình tổng thể, quản lý toàn viện.
-- **Department Operator**: quản lý một khoa/phòng cụ thể.
-- **Front Desk Staff**: hỗ trợ check-in và tìm kiếm bệnh nhân.
-- **Device Operator**: cập nhật trạng thái thiết bị và hàng chờ thiết bị.
-
-## 5. Luồng dữ liệu tổng quát
-
-### 5.1. Trước khi bệnh nhân đến viện
-
-1. Hệ thống đặt lịch hiện có tạo lịch khám.
-2. MediFlow AI đồng bộ dữ liệu lịch.
-3. AI dự báo tải theo khung giờ.
-4. Nếu khung giờ đông, AI tạo gợi ý đổi lịch.
-5. Admin có thể duyệt hoặc hệ thống tự gửi theo cấu hình.
-6. Customer nhận thông báo và quyết định đổi hay giữ lịch.
-7. Nếu đổi lịch, MediFlow AI gửi yêu cầu cập nhật lại hệ thống đặt lịch gốc.
-
-### 5.2. Khi bệnh nhân đến viện
-
-1. Customer check-in.
-2. Hệ thống lấy dữ liệu vận hành thời gian thực.
-3. AI tạo lộ trình khám ban đầu.
-4. Customer nhận bước tiếp theo.
-5. Admin thấy bệnh nhân xuất hiện trong dashboard/hàng chờ.
-
-### 5.3. Trong quá trình khám
-
-1. Customer hoàn thành từng bước.
-2. Hệ thống cập nhật trạng thái.
-3. AI kiểm tra lại hàng chờ và trạng thái thiết bị.
-4. Nếu cần, AI điều chỉnh lộ trình.
-5. Customer nhận cập nhật.
-6. Admin theo dõi toàn cảnh và xử lý cảnh báo.
-
-### 5.4. Sau khi hoàn tất
-
-1. Customer kết thúc hành trình khám.
-2. Hệ thống ghi nhận tổng thời gian thực tế.
-3. Dữ liệu được dùng để cải thiện dự báo.
-4. Admin xem báo cáo hiệu quả vận hành.
-
-## 6. Gợi ý ưu tiên xây dựng MVP
-
-Nếu thời gian hackathon ngắn, nên ưu tiên các màn hình sau:
-
-### Customer MVP
-
-1. Trang chủ lịch hẹn.
-2. Cảnh báo khung giờ đông.
-3. Gợi ý đổi lịch.
-4. Hành trình khám của tôi.
-5. Thời gian chờ dự kiến.
-
-### Admin MVP
-
-1. Dashboard tổng quan.
-2. Quản lý tải từng khu vực.
-3. Đề xuất AI.
-4. Cập nhật trạng thái thiết bị/phòng.
-5. Hàng chờ bệnh nhân.
-
-## 7. Kết luận
-
-Với 2 role **Customer** và **Admin**, MediFlow AI có thể thể hiện rõ giá trị của một hệ thống điều phối bệnh viện thông minh.
-
-Customer nhìn thấy lợi ích trực tiếp: biết khi nào nên đi khám, có thể đổi sang khung giờ ít đông, biết phải đi đâu tiếp theo và còn chờ bao lâu.
-
-Admin nhìn thấy lợi ích vận hành: biết khu vực nào đang quá tải, thiết bị nào gặp sự cố, bệnh nhân đang bị kẹt ở đâu và AI đề xuất điều phối như thế nào.
-
-Trong demo hackathon, chỉ cần làm rõ 2 góc nhìn này là hệ thống đã thể hiện đúng trọng tâm đề bài: giảm thời gian chờ, giảm ùn tắc, tăng hiệu suất sử dụng phòng/thiết bị và giúp bệnh nhân chủ động theo dõi hành trình khám bệnh.
+- Tiêu đề: **Lexend**, phông chữ có hình dáng rõ, hỗ trợ khả năng đọc nhanh.
+- Nội dung: **Source Sans 3**, phông chữ dễ đọc ở kích thước nhỏ và hỗ trợ tiếng Việt.
+- Số liệu: dùng biến thể chữ số có độ rộng cố định để đồng hồ và số liệu không nhảy vị trí khi cập nhật.
+
+Thang cỡ chữ:
+
+| Vai trò | Cỡ chữ gợi ý |
+|---|---:|
+| Tiêu đề trang | 28–32 px |
+| Tiêu đề khu vực | 22–24 px |
+| Tiêu đề thẻ | 18–20 px |
+| Nội dung | Tối thiểu 16 px trên điện thoại, 14 px trong bảng điều hành |
+| Chú thích | 13–14 px, chỉ dùng khi không phải nội dung chính |
+
+### 5.4. Khoảng cách và hình dạng
+
+- Dùng hệ khoảng cách theo bội số 4 và 8 px.
+- Vùng bấm tối thiểu 48 × 48 px trong ứng dụng bệnh nhân và 44 × 44 px trong bảng điều hành.
+- Khoảng cách tối thiểu giữa hai vùng bấm là 8 px.
+- Thẻ chính bo góc 12 px; nút và trường nhập bo góc 10 px.
+- Không dùng quá ba mức bóng đổ.
+- Mỗi màn hình chỉ có một hành động chính nổi bật.
+
+### 5.5. Biểu tượng và chuyển động
+
+- Dùng một bộ biểu tượng véc-tơ thống nhất, ví dụ Lucide.
+- Không dùng biểu tượng cảm xúc làm biểu tượng chức năng.
+- Chuyển động kéo dài khoảng 150–300 mili giây và phải thể hiện quan hệ nguyên nhân–kết quả.
+- Hỗ trợ chế độ giảm chuyển động của thiết bị.
+- Không chặn thao tác trong lúc hiệu ứng đang chạy.
+
+---
+
+## 6. Quy tắc an toàn giao diện
+
+1. Không hiển thị một phòng cho bệnh nhân nếu phòng đó chưa được xác nhận phù hợp.
+2. Không hủy chỗ cũ trước khi chỗ mới được xác nhận.
+3. Không dùng một giờ chính xác giả tạo; dùng khoảng thời gian dự kiến và thời điểm cập nhật.
+4. Dữ liệu quá cũ phải ghi rõ “Không đủ tin cậy” và dừng đề xuất mới.
+5. Mọi thay đổi ảnh hưởng hành trình bệnh nhân trong bản thử nghiệm đều cần điều phối viên phê duyệt.
+6. Bệnh nhân từ chối đổi lịch hoặc đổi phòng vẫn giữ quyền lợi hiện tại nếu kế hoạch cũ còn an toàn.
+7. Không hiển thị nội dung y khoa chưa được bác sĩ xác nhận.
+8. Màn hình công cộng chỉ dùng mã lượt đã che thông tin cá nhân.
+9. Mỗi lỗi phải cho biết nguyên nhân và cách phục hồi, không chỉ ghi “Có lỗi xảy ra”.
+10. Luôn có đường chuyển sang nhân viên hỗ trợ.
+
+---
+
+## 7. Trạng thái kết nối dùng chung
+
+| Trạng thái | Cách hiển thị | Hành vi hệ thống |
+|---|---|---|
+| Dữ liệu mới | “Cập nhật 8 giây trước” | Cho phép tạo đề xuất |
+| Dữ liệu sắp quá hạn | Cảnh báo kèm thời điểm | Cho phép xem, hạn chế hành động rủi ro |
+| Dữ liệu quá hạn | “Không đủ tin cậy” | Dừng đề xuất và yêu cầu làm mới |
+| Mất kết nối | Hiển thị dữ liệu gần nhất và thời điểm | Giữ kế hoạch hiện tại, không tự đổi tuyến |
+| Dữ liệu mâu thuẫn | Ghi rõ nguồn đang mâu thuẫn | Khóa hành động và chuyển nhân viên xác minh |
+
+---
+
+## 8. Phạm vi bản thử nghiệm 72 giờ
+
+### 8.1. Ứng dụng Điều phối hành trình khám và xét nghiệm
+
+1. Nhận chỉ định mới.
+2. Chọn ưu tiên và so sánh ba lộ trình hợp lệ.
+3. Xem thứ tự, lý do đề xuất và đổi một phòng tương đương.
+4. Giữ chỗ, xác nhận và theo dõi từng bước.
+5. Nhận thay đổi khi X-quang gặp sự cố.
+
+### 8.2. Ứng dụng NHỊP HẸN
+
+1. Hiển thị lịch đã đặt.
+2. Quét tải ngày mai.
+3. So sánh lịch hiện tại với ba khung giờ thay thế.
+4. Giữ chỗ mới và xác nhận đổi lịch.
+5. Chứng minh lịch cũ không bị mất khi cập nhật thất bại.
+
+### 8.3. Trung tâm điều phối
+
+1. Tổng quan dòng bệnh nhân.
+2. Chi tiết khu X-quang.
+3. Cảnh báo máy hỏng.
+4. Phê duyệt điều phối.
+5. Nhật ký quyết định và so sánh trước–sau.
+
+---
+
+## 9. Kịch bản trình diễn liên ứng dụng
+
+```text
+Phần 1 – Trước ngày khám
+NHỊP HẸN phát hiện 08:00 quá tải
+→ Bệnh nhân tự nguyện chuyển sang 10:00
+→ Lịch gốc xác nhận
+→ Biểu đồ tải được cân bằng
+
+Phần 2 – Sau khi bác sĩ khám
+Bác sĩ ký chỉ định lấy máu, X-quang và siêu âm
+→ Bệnh nhân chọn ưu tiên hoàn tất sớm
+→ Ứng dụng đề xuất lấy máu → X-quang → siêu âm
+→ Bệnh nhân xem lý do và xác nhận
+→ Hệ thống giữ chỗ
+→ Bệnh nhân được hướng dẫn tới nơi tiếp theo
+
+Phần 3 – Khi có sự cố
+X-quang 02 gặp lỗi
+→ Trung tâm điều phối tạo cảnh báo
+→ Điều phối viên phê duyệt chuyển sang X-quang 03
+→ Ứng dụng bệnh nhân giải thích thay đổi
+→ Hàng chờ và thời gian dự kiến được cập nhật
+→ Nhật ký ghi lại toàn bộ quyết định
+```
+
+---
+
+## 10. Danh sách kiểm tra chung
+
+- [ ] Ba ứng dụng có đường dẫn và mục tiêu độc lập.
+- [ ] Bệnh nhân chỉ chọn giữa các phương án đã được xác nhận phù hợp.
+- [ ] Lịch cũ chỉ bị hủy sau khi lịch mới được xác nhận.
+- [ ] Mọi thời gian dự kiến đều là khoảng và có thời điểm cập nhật.
+- [ ] Không dùng màu làm tín hiệu duy nhất.
+- [ ] Toàn bộ nút có thể dùng bằng bàn phím hoặc công nghệ hỗ trợ.
+- [ ] Biểu đồ có bảng dữ liệu hoặc tóm tắt chữ thay thế.
+- [ ] Sự cố mô phỏng được ghi rõ là dữ liệu giả lập.
+- [ ] Có trạng thái tải, rỗng, lỗi và mất kết nối.
+- [ ] Mọi quyết định điều phối đều có nhật ký.
