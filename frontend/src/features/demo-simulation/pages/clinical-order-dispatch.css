@@ -668,6 +668,121 @@
   line-height: 1.55;
 }
 
+.order-dispatch,
+.patient-inbox-shell {
+  --sim-font: "Airbnb Cereal VF", Circular, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --sim-display-xl: 28px;
+  --sim-display-lg: 22px;
+  --sim-display-md: 21px;
+  --sim-title-md: 16px;
+  --sim-body-md: 16px;
+  --sim-body-sm: 14px;
+  --sim-caption: 13px;
+  --sim-badge: 11px;
+  --sim-micro: 12px;
+  font-family: var(--sim-font);
+  font-size: var(--sim-body-sm);
+  line-height: 1.43;
+  letter-spacing: 0;
+}
+
+.order-dispatch :where(button, input, select, textarea, a, p, span, small, strong, th, td, dt, dd, label, h1, h2, h3),
+.patient-inbox-shell :where(button, input, select, textarea, a, p, span, small, strong, th, td, dt, dd, label, h1, h2, h3) {
+  font-family: var(--sim-font);
+  letter-spacing: 0;
+}
+
+.order-dispatch__live,
+.patient-inbox-header__live,
+.order-panel__heading span,
+.patient-order-card__heading span,
+.patient-next-room > span {
+  font-size: var(--sim-micro);
+  font-weight: 700;
+  line-height: 1.33;
+  letter-spacing: 0;
+}
+
+.order-dispatch__title h1,
+.patient-inbox-header > h1 {
+  font-size: var(--sim-display-xl);
+  font-weight: 700;
+  line-height: 1.43;
+}
+
+.order-result-success > h2,
+.patient-next-room h2 {
+  font-size: var(--sim-display-lg);
+  font-weight: 500;
+  line-height: 1.18;
+}
+
+.order-panel__heading h2,
+.patient-order-card__heading h2,
+.order-result-empty h2,
+.patient-inbox-state h2,
+.patient-order-arrived h2 {
+  font-size: var(--sim-display-md);
+  font-weight: 700;
+  line-height: 1.43;
+}
+
+.order-dispatch__title > p,
+.order-form-grid label,
+.order-form-grid input,
+.order-form-grid select,
+.order-service strong,
+.order-state,
+.order-message,
+.order-result-empty p,
+.patient-inbox-state p,
+.patient-inbox-header > p,
+.patient-next-room > p,
+.order-patient-link,
+.order-dispatch__submit {
+  font-size: var(--sim-body-sm);
+  line-height: 1.43;
+}
+
+.order-dispatch__nav a,
+.order-dispatch__pipeline strong,
+.order-result-success__meta,
+.order-room-matches h3,
+.patient-inbox-header > a,
+.patient-inbox-header > span,
+.patient-order-arrived > div {
+  font-size: var(--sim-caption);
+  line-height: 1.29;
+}
+
+.order-dispatch__pipeline small,
+.order-service div > span,
+.order-service small,
+.order-result-success__status,
+.order-route-steps p,
+.order-route-steps small,
+.patient-route-list p,
+.patient-route-list small,
+.order-room-matches strong,
+.order-room-matches span,
+.patient-order-arrived p,
+.patient-order-items span,
+.patient-order-items p,
+.patient-route-summary span,
+.patient-route-summary strong,
+.patient-safety-note {
+  font-size: var(--sim-badge);
+  line-height: 1.43;
+}
+
+.order-dispatch__pipeline li > span,
+.order-route-steps li > span,
+.patient-route-list li > span {
+  font-size: var(--sim-micro);
+  font-weight: 700;
+  line-height: 1;
+}
+
 @media (max-width: 860px) {
   .order-dispatch__pipeline,
   .order-dispatch__workspace {

@@ -1,14 +1,20 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  Activity,
   ArrowLeft,
+  Building2,
+  ClipboardList,
   Database,
   FileInput,
+  LayoutDashboard,
   Pencil,
   Power,
+  Radio,
   RefreshCw,
   Save,
   ServerCog,
+  Settings2,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import {
@@ -25,6 +31,7 @@ import type {
   RoomServiceType,
   SchedulingPriority,
 } from '../model/clinical-service.schemas'
+import './hospital-simulator.css'
 import './clinical-service-catalog.css'
 
 const catalogQueryKey = ['simulation-clinical-service-catalog'] as const
@@ -179,6 +186,35 @@ function formatRange(minimum: number, maximum: number): string {
   return minimum === maximum ? `${minimum} phút` : `${minimum}–${maximum} phút`
 }
 
+function CatalogSimulationSidebar() {
+  return (
+    <aside className="sim-sidebar">
+      <div className="sim-brand">
+        <span><Activity size={22} /></span>
+        <div><strong>NHỊP VIỆN</strong><small>Hệ thống giả lập</small></div>
+      </div>
+      <nav aria-label="Điều hướng hệ thống giả lập">
+        <Link to="/demo/simulator">
+          <LayoutDashboard size={19} /> Tổng quan
+        </Link>
+        <Link to="/demo/simulator?tab=rooms">
+          <Building2 size={19} /> Phòng & hàng chờ
+        </Link>
+        <Link to="/demo/simulator?tab=orders">
+          <ClipboardList size={19} /> Bắn chỉ định
+        </Link>
+        <Link to="/demo/hospital-data" className="is-active">
+          <Settings2 size={19} /> Danh mục chỉ định
+        </Link>
+      </nav>
+      <div className="sim-sidebar__note">
+        <Radio size={16} />
+        <div><strong>API giả lập đang dùng</strong><span>Dữ liệu tách biệt với ứng dụng bệnh nhân</span></div>
+      </div>
+    </aside>
+  )
+}
+
 type SaveCommand =
   | { mode: 'create'; code: string; payload: ClinicalServicePayload }
   | {
@@ -287,10 +323,13 @@ export function ClinicalServiceCatalogPage() {
   }
 
   return (
-    <main className="catalog-admin">
-      <header className="catalog-admin__hero">
+    <main className="hospital-simulator catalog-admin-shell">
+      <CatalogSimulationSidebar />
+      <section className="sim-main">
+        <div className="catalog-admin">
+          <header className="catalog-admin__hero">
         <div className="catalog-admin__hero-topline">
-          <Link to="/demo/simulation" className="catalog-admin__back-link">
+          <Link to="/demo/simulator" className="catalog-admin__back-link">
             <ArrowLeft size={17} aria-hidden="true" />
             Quay lại vận hành mô phỏng
           </Link>
@@ -317,9 +356,9 @@ export function ClinicalServiceCatalogPage() {
             <div><strong>03 · Cấp</strong><span>Hợp đồng API v1</span></div>
           </li>
         </ol>
-      </header>
+          </header>
 
-      <div className="catalog-admin__content">
+          <div className="catalog-admin__content">
         <section className="catalog-stats" aria-label="Tổng quan danh mục">
           <article><span>Đang hoạt động</span><strong>{activeServices.length}</strong></article>
           <article><span>Tổng bản ghi</span><strong>{services.length}</strong></article>
@@ -520,7 +559,9 @@ export function ClinicalServiceCatalogPage() {
             </div>
           )}
         </section>
-      </div>
+          </div>
+        </div>
+      </section>
     </main>
   )
 }

@@ -1,7 +1,20 @@
 .catalog-admin {
   min-height: 100vh;
+  font-family: var(--sim-font, "Airbnb Cereal VF", Circular, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif);
+  font-size: var(--sim-body-sm, 14px);
+  line-height: 1.43;
+  letter-spacing: 0;
   color: #173438;
   background: #eef4f3;
+}
+
+.catalog-admin-shell .catalog-admin__hero {
+  padding: 24px 34px;
+}
+
+.catalog-admin-shell .catalog-admin__content {
+  padding-right: 34px;
+  padding-left: 34px;
 }
 
 .catalog-admin__hero {
@@ -551,6 +564,88 @@
   background: #eaf4f1;
   font-size: 11px;
   font-weight: 700;
+}
+
+.catalog-admin :where(button, input, select, textarea, a, p, span, small, strong, code, th, td, dt, dd, label, legend) {
+  font-family: var(--sim-font, "Airbnb Cereal VF", Circular, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif);
+  letter-spacing: 0;
+}
+
+.catalog-admin__hero-copy p,
+.catalog-section-heading span,
+.catalog-table-card__heading span,
+.catalog-feed-card__indicator,
+.catalog-table-wrap th {
+  font-size: var(--sim-micro, 12px);
+  font-weight: 700;
+  line-height: 1.33;
+  letter-spacing: 0;
+}
+
+.catalog-admin__hero-copy h1 {
+  max-width: 760px;
+  font-size: var(--sim-display-xl, 28px);
+  font-weight: 700;
+  line-height: 1.43;
+  letter-spacing: 0;
+}
+
+.catalog-section-heading h2,
+.catalog-table-card__heading h2,
+.catalog-feed-card h2 {
+  font-size: var(--sim-display-md, 21px);
+  font-weight: 700;
+  line-height: 1.43;
+}
+
+.catalog-stats strong {
+  font-size: var(--sim-display-xl, 28px);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.catalog-form label,
+.catalog-form legend,
+.catalog-button,
+.catalog-status,
+.catalog-row-actions button {
+  font-size: var(--sim-body-sm, 14px);
+  font-weight: 500;
+  line-height: 1.29;
+}
+
+.catalog-admin__hero-topline,
+.catalog-admin__hero-copy > span,
+.catalog-pipeline span,
+.catalog-stats span,
+.catalog-form input,
+.catalog-form select,
+.catalog-form textarea,
+.catalog-message,
+.catalog-feed-card > p,
+.catalog-table-wrap table,
+.catalog-table-wrap td {
+  font-size: var(--sim-body-sm, 14px);
+  line-height: 1.43;
+}
+
+.catalog-form small,
+.catalog-feed-card dt,
+.catalog-feed-card dd,
+.catalog-feed-card > code,
+.catalog-feed-card__note,
+.catalog-table-wrap td > code,
+.catalog-table-wrap td > span,
+.catalog-table-wrap td > small {
+  font-size: var(--sim-caption, 13px);
+  line-height: 1.29;
+}
+
+.catalog-pipeline strong,
+.catalog-stats__contract strong {
+  font-size: var(--sim-caption, 13px);
+  font-weight: 600;
+  line-height: 1.29;
 }
 
 @media (max-width: 920px) {
