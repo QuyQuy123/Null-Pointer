@@ -1,4 +1,5 @@
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from itertools import permutations, product
 from math import ceil
@@ -70,8 +71,16 @@ class DeterministicRoutingOptimizer:
         self,
         snapshot: SimulationSnapshot,
         request: CreateRouteProposalRequest,
+        *,
+        service_catalog: Mapping[ServiceCode, ServiceDefinition] | None = None,
+        allowed_room_locations: Mapping[ServiceCode, frozenset[str]] | None = None,
     ) -> list[RankedCandidate]:
-        candidates = self._generate_candidates(snapshot, request)
+        candidates = self._generate_candidates(
+            snapshot,
+            request,
+            service_catalog=service_catalog or SERVICE_CATALOG,
+            allowed_room_locations=allowed_room_locations or {},
+        )
         if not candidates:
             raise NoFeasibleRouteError(
                 "Không có phương án đáp ứng đầy đủ chỉ định với trạng thái phòng hiện tại."
@@ -119,12 +128,19 @@ class DeterministicRoutingOptimizer:
         self,
         snapshot: SimulationSnapshot,
         request: CreateRouteProposalRequest,
+        *,
+        service_catalog: Mapping[ServiceCode, ServiceDefinition],
+        allowed_room_locations: Mapping[ServiceCode, frozenset[str]],
     ) -> list[RouteCandidate]:
         service_definitions = [
-            SERVICE_CATALOG[service_code]
+            service_catalog[service_code]
             for service_code in request.required_service_codes
         ]
-        room_options = self._room_options(snapshot, service_definitions)
+        room_options = self._room_options(
+            snapshot,
+            service_definitions,
+            allowed_room_locations=allowed_room_locations,
+        )
         sequences = self._service_sequences(service_definitions)
         candidates: list[RouteCandidate] = []
 
@@ -148,6 +164,8 @@ class DeterministicRoutingOptimizer:
         self,
         snapshot: SimulationSnapshot,
         services: list[ServiceDefinition],
+        *,
+        allowed_room_locations: Mapping[ServiceCode, frozenset[str]],
     ) -> dict[ServiceCode, list[RoomSnapshot]]:
         active_rooms = [
             room
@@ -158,14 +176,19 @@ class DeterministicRoutingOptimizer:
         options: dict[ServiceCode, list[RoomSnapshot]] = {}
 
         for service in services:
+            configured_locations = allowed_room_locations.get(service.code)
             matching_rooms = [
                 room
                 for room in active_rooms
                 if room.service_type == service.room_service_type
+                and (
+                    configured_locations is None
+                    or room.location_code in configured_locations
+                )
             ]
             if not matching_rooms:
                 raise NoFeasibleRouteError(
-                    f"Không có phòng đang hoạt động cho dịch vụ {service.name}."
+                    f"Không có phòng phù hợp đang hoạt động cho dịch vụ {service.name}."
                 )
             options[service.code] = matching_rooms
 

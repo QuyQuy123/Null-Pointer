@@ -18,23 +18,37 @@ const priorityLabels: Record<Priority, string> = {
 interface RouteChoiceScreenProps {
   priority: Priority;
   scheduleStrategy: ScheduleStrategy;
+  dispatchedRoutes?: Route[];
+  doctorName?: string;
   onBack: () => void;
   onSelect: (route: Route) => void;
   onViewDetail: (route: Route) => void;
 }
 
-export function RouteChoiceScreen({ priority, scheduleStrategy, onBack, onSelect, onViewDetail }: RouteChoiceScreenProps) {
+export function RouteChoiceScreen({
+  priority,
+  scheduleStrategy,
+  dispatchedRoutes,
+  doctorName = "BS. Trần Văn Hùng",
+  onBack,
+  onSelect,
+  onViewDetail,
+}: RouteChoiceScreenProps) {
   const [showReasonFor, setShowReasonFor] = useState<RouteId | null>(null);
   const {
-    data: routes = [],
+    data: calculatedRoutes = [],
     isPending,
     isError,
     refetch,
   } = useQuery({
     queryKey: ["route-proposal", priority, scheduleStrategy],
     queryFn: () => createRouteProposal(priority, scheduleStrategy),
+    enabled: dispatchedRoutes === undefined,
     staleTime: 0,
   });
+  const routes = dispatchedRoutes ?? calculatedRoutes;
+  const isRouteLoading = dispatchedRoutes === undefined && isPending;
+  const hasRouteError = dispatchedRoutes === undefined && isError;
 
   return (
     <div className="flex flex-col min-h-full bg-background">
@@ -53,14 +67,14 @@ export function RouteChoiceScreen({ priority, scheduleStrategy, onBack, onSelect
           </p>
         </div>
 
-        {isPending && (
+        {isRouteLoading && (
           <div className="bg-card rounded-xl border border-border p-6 text-center">
             <RefreshCw size={24} className="animate-spin text-primary mx-auto mb-3" />
             <p style={{ fontSize: 15 }} className="text-foreground">Đang tính các phương án từ trạng thái phòng hiện tại...</p>
           </div>
         )}
 
-        {isError && (
+        {hasRouteError && (
           <div className="bg-red-50 rounded-xl border border-red-200 p-4">
             <p style={{ fontSize: 14 }} className="text-red-700 mb-3">Không thể tạo lộ trình an toàn. Vui lòng kiểm tra backend hoặc thử lại.</p>
             <button
@@ -111,7 +125,7 @@ export function RouteChoiceScreen({ priority, scheduleStrategy, onBack, onSelect
                   <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <div className="w-2 h-2 rounded-full bg-primary" />
                   </div>
-                  <p style={{ fontSize: 14 }} className="text-muted-foreground">Quay lại BS. Trần Văn Hùng</p>
+                  <p style={{ fontSize: 14 }} className="text-muted-foreground">Quay lại {doctorName}</p>
                 </div>
               </div>
 

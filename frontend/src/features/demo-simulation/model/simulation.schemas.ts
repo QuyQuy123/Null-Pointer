@@ -11,8 +11,9 @@ const equipmentStatusSchema = z.enum(['operational', 'maintenance'])
 const patientStatusSchema = z.enum(['waiting', 'in_service', 'completed'])
 const demoPrioritySchema = z.enum(['normal', 'priority'])
 
-const roomSnapshotSchema = z.object({
+export const roomSnapshotSchema = z.object({
   code: z.string(),
+  location_code: z.string(),
   name: z.string(),
   department: z.string(),
   floor: z.string(),
@@ -73,4 +74,23 @@ export const simulationSnapshotSchema = z.object({
 })
 
 export type RoomStatus = z.infer<typeof roomStatusSchema>
+export type RoomSnapshot = z.infer<typeof roomSnapshotSchema>
 export type SimulationSnapshot = z.infer<typeof simulationSnapshotSchema>
+
+export interface CreateSimulationRoomPayload {
+  code: string
+  location_code: string
+  name: string
+  department: string
+  floor: string
+  service_type:
+    | 'blood_test'
+    | 'urine_test'
+    | 'xray'
+    | 'ultrasound'
+    | 'ct_scan'
+    | 'consultation'
+  average_service_minutes: number
+  initial_waiting_patients: number
+  operational: boolean
+}

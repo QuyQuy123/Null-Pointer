@@ -10,12 +10,25 @@ import type { Route, RouteReservation } from "../model/patient-flow.types";
 
 interface ConfirmScreenProps {
   route: Route;
+  patientCode: string;
+  clinicalOrderId: string;
+  doctorName?: string;
+  doctorRoomCode?: string;
   onBack: () => void;
-  onConfirmed: () => void;
+  onConfirmed: (reservation: RouteReservation) => void;
   onChooseAnother: () => void;
 }
 
-export function ConfirmScreen({ route, onBack, onConfirmed, onChooseAnother }: ConfirmScreenProps) {
+export function ConfirmScreen({
+  route,
+  patientCode,
+  clinicalOrderId,
+  doctorName = "BS. Trần Văn Hùng",
+  doctorRoomCode = "205",
+  onBack,
+  onConfirmed,
+  onChooseAnother,
+}: ConfirmScreenProps) {
   const [reservationSeconds, setReservationSeconds] = useState(0);
   const [reservation, setReservation] = useState<RouteReservation | null>(null);
   const [reservationError, setReservationError] = useState<string | null>(null);
@@ -25,7 +38,7 @@ export function ConfirmScreen({ route, onBack, onConfirmed, onChooseAnother }: C
 
   useEffect(() => {
     let active = true;
-    createRouteReservation(route)
+    createRouteReservation(route, patientCode, clinicalOrderId)
       .then((value) => {
         if (active) setReservation(value);
       })
@@ -33,7 +46,7 @@ export function ConfirmScreen({ route, onBack, onConfirmed, onChooseAnother }: C
         if (active) setReservationError("Không thể giữ chỗ cho phương án này. Vui lòng chọn lại lộ trình.");
       });
     return () => { active = false; };
-  }, [route]);
+  }, [clinicalOrderId, patientCode, route]);
 
   useEffect(() => {
     if (!reservation || confirmed) return;
@@ -61,7 +74,7 @@ export function ConfirmScreen({ route, onBack, onConfirmed, onChooseAnother }: C
       setReservation(result);
       setConfirmed(true);
       await new Promise((resolve) => setTimeout(resolve, 800));
-      onConfirmed();
+      onConfirmed(result);
     } catch {
       setReservationError("Không thể xác nhận chỗ. Chỗ có thể đã hết hạn hoặc trạng thái phòng đã thay đổi.");
     } finally {
@@ -169,7 +182,7 @@ export function ConfirmScreen({ route, onBack, onConfirmed, onChooseAnother }: C
               <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                 <div className="w-2 h-2 rounded-full bg-white" />
               </div>
-              <p style={{ fontSize: 14 }} className="text-foreground">Quay lại BS. Trần Văn Hùng — Phòng 205</p>
+              <p style={{ fontSize: 14 }} className="text-foreground">Quay lại {doctorName} — Phòng {doctorRoomCode}</p>
             </div>
           </div>
         </div>

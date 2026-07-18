@@ -3,6 +3,7 @@ import { AppHeader } from "./AppHeader";
 
 interface DirectionsScreenProps {
   destination: string;
+  roomCode?: string;
   floor: string;
   distance: string;
   onArrived: () => void;
@@ -10,14 +11,13 @@ interface DirectionsScreenProps {
   onBack: () => void;
 }
 
-const directionSteps = [
-  "Từ vị trí hiện tại, đi thẳng theo hành lang chính về phía cầu thang.",
-  "Lên cầu thang hoặc thang máy đến tầng 2 (thang máy ở cuối hành lang bên phải).",
-  "Ra khỏi thang máy, rẽ trái và đi theo biển chỉ dẫn \"Khu X-quang\".",
-  "Phòng X-quang 03 ở bên tay phải, cách thang máy khoảng 60 mét.",
-];
-
-export function DirectionsScreen({ destination, floor, distance, onArrived, onNotFound, onBack }: DirectionsScreenProps) {
+export function DirectionsScreen({ destination, roomCode, floor, distance, onArrived, onNotFound, onBack }: DirectionsScreenProps) {
+  const directionSteps = [
+    "Đi theo hành lang chính đến khu thang máy hoặc cầu thang gần nhất.",
+    `Di chuyển đến ${floor} và kiểm tra biển chỉ dẫn của khoa.`,
+    `Đi theo biển hướng dẫn đến ${destination}.`,
+    `Đối chiếu mã phòng ${roomCode ?? destination} trước khi xác nhận đã đến.`,
+  ];
   return (
     <div className="flex flex-col min-h-full bg-background pb-6">
       <AppHeader

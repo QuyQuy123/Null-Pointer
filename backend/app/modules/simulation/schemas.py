@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import StrEnum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.shared.enums import JourneyStepStatus
 
@@ -31,10 +31,13 @@ class SimulationEventType(StrEnum):
     JOURNEY_COMPLETED = "journey_completed"
     ROOM_PAUSED = "room_paused"
     ROOM_REOPENED = "room_reopened"
+    ROOM_CREATED = "room_created"
+    QUEUE_ADJUSTED = "queue_adjusted"
 
 
 class RoomSnapshot(BaseModel):
     code: str
+    location_code: str
     name: str
     department: str
     floor: str
@@ -103,3 +106,38 @@ class AdvanceSimulationRequest(BaseModel):
 class UpdateRoomOperationRequest(BaseModel):
     operational: bool
     reason: str | None = Field(default=None, max_length=200)
+
+
+class CreateSimulationRoomRequest(BaseModel):
+    code: str = Field(min_length=2, max_length=30)
+    location_code: str = Field(min_length=2, max_length=40)
+    name: str = Field(min_length=2, max_length=120)
+    department: str = Field(min_length=2, max_length=120)
+    floor: str = Field(min_length=1, max_length=40)
+    service_type: str = Field(
+        pattern="^(blood_test|urine_test|xray|ultrasound|ct_scan|consultation)$"
+    )
+    average_service_minutes: int = Field(ge=1, le=180)
+    initial_waiting_patients: int = Field(default=0, ge=0, le=200)
+    operational: bool = True
+
+    @field_validator("code", "location_code", mode="before")
+    @classmethod
+    def normalize_codes(cls, value: object) -> object:
+        return value.strip().upper() if isinstance(value, str) else value
+
+    @field_validator("name", "department", "floor", mode="before")
+    @classmethod
+    def strip_text(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
+
+
+class AdjustRoomQueueRequest(BaseModel):
+    delta: int = Field(ge=-50, le=50)
+
+    @field_validator("delta")
+    @classmethod
+    def delta_must_not_be_zero(cls, value: int) -> int:
+        if value == 0:
+            raise ValueError("Mức thay đổi hàng chờ phải khác 0.")
+        return value

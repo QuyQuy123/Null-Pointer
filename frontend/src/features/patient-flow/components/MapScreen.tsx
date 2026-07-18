@@ -2,6 +2,9 @@ import { useState } from "react";
 import { ArrowLeft, Navigation, Accessibility, MapPin, ChevronRight, Layers } from "lucide-react";
 
 interface MapScreenProps {
+  destination?: string;
+  floor?: string;
+  travelMinutes?: number;
   onBack: () => void;
 }
 
@@ -13,14 +16,14 @@ const floors: { id: Floor; label: string }[] = [
   { id: 3, label: "Tầng 3" },
 ];
 
-const directionSteps = [
-  { step: 1, text: "Từ vị trí hiện tại, đi thẳng dọc hành lang chính về phía Nam." },
-  { step: 2, text: "Rẽ phải tại biển \"Khu Xét nghiệm\", đi thêm khoảng 30 m." },
-  { step: 3, text: "Lấy máu 01 ở bên trái — nhận số thứ tự tại quầy trước cửa." },
-];
+function parseFloor(value: string): Floor {
+  if (value.includes("3")) return 3;
+  if (value.includes("2")) return 2;
+  return 1;
+}
 
 /* ── SVG floor maps ── */
-function FloorMap({ floor, showRoute }: { floor: Floor; showRoute: boolean }) {
+function FloorMap({ floor, showRoute, destination }: { floor: Floor; showRoute: boolean; destination: string }) {
   if (floor === 1) return (
     <svg width="100%" height="100%" viewBox="0 0 360 260" preserveAspectRatio="xMidYMid meet">
       {/* Background */}
@@ -35,7 +38,7 @@ function FloorMap({ floor, showRoute }: { floor: Floor; showRoute: boolean }) {
 
       {/* Rooms — left wing */}
       <rect x="20" y="20" width="130" height="80" rx="4" fill="#E0EEF0" stroke="#B0C8CC" strokeWidth="1" />
-      <text x="85" y="55" textAnchor="middle" fill="#4B6B6E" fontSize="11" fontWeight="500">Lấy máu 01</text>
+      <text x="85" y="55" textAnchor="middle" fill="#4B6B6E" fontSize="10" fontWeight="500">{destination}</text>
       <text x="85" y="70" textAnchor="middle" fill="#4B6B6E" fontSize="10">Tầng 1, khu A</text>
 
       <rect x="20" y="160" width="130" height="80" rx="4" fill="#EEF2F8" stroke="#C0C8D8" strokeWidth="1" />
@@ -87,7 +90,7 @@ function FloorMap({ floor, showRoute }: { floor: Floor; showRoute: boolean }) {
       <rect x="160" y="10" width="40" height="240" fill="#ffffff" opacity="0.7" />
 
       <rect x="20" y="20" width="130" height="80" rx="4" fill="#EEF2F8" stroke="#C0C8D8" strokeWidth="1" />
-      <text x="85" y="60" textAnchor="middle" fill="#6B7280" fontSize="11">X-quang 03</text>
+      <text x="85" y="60" textAnchor="middle" fill="#6B7280" fontSize="10">{destination}</text>
       <text x="85" y="74" textAnchor="middle" fill="#6B7280" fontSize="10">Khu A</text>
 
       <rect x="20" y="160" width="130" height="80" rx="4" fill="#EEF2F8" stroke="#C0C8D8" strokeWidth="1" />
@@ -110,14 +113,25 @@ function FloorMap({ floor, showRoute }: { floor: Floor; showRoute: boolean }) {
     <svg width="100%" height="100%" viewBox="0 0 360 260" preserveAspectRatio="xMidYMid meet">
       <rect width="360" height="260" fill="#F0F5F8" />
       <rect x="10" y="10" width="340" height="240" rx="6" fill="#E8EEF2" stroke="#C5D0D8" strokeWidth="2" />
-      <text x="180" y="135" textAnchor="middle" fill="#9CA3AF" fontSize="14">Tầng 3 — Hành chính</text>
+      <text x="180" y="135" textAnchor="middle" fill="#4B6B6E" fontSize="12">{destination}</text>
     </svg>
   );
 }
-export function MapScreen({ onBack }: MapScreenProps) {
-  const [activeFloor, setActiveFloor] = useState<Floor>(1);
+export function MapScreen({
+  destination = "Lấy máu 01",
+  floor = "Tầng 1, khu A",
+  travelMinutes = 0,
+  onBack,
+}: MapScreenProps) {
+  const destinationFloor = parseFloor(floor);
+  const [activeFloor, setActiveFloor] = useState<Floor>(destinationFloor);
   const [showRoute, setShowRoute] = useState(true);
   const [directionsOpen, setDirectionsOpen] = useState(true);
+  const directionSteps = [
+    { step: 1, text: "Đi theo hành lang chính đến khu thang máy hoặc cầu thang gần nhất." },
+    { step: 2, text: `Di chuyển đến ${floor} và đi theo biển chỉ dẫn của khoa.` },
+    { step: 3, text: `Đến ${destination} và đối chiếu mã phòng trước khi nhận số thứ tự.` },
+  ];
 
   return (
     <div className="flex flex-col min-h-full bg-background">
@@ -133,7 +147,7 @@ export function MapScreen({ onBack }: MapScreenProps) {
           </button>
           <div className="flex-1 min-w-0 pl-1">
             <p style={{ fontSize: 17 }} className="text-white">Bản đồ bệnh viện</p>
-            <p style={{ fontSize: 13, opacity: 0.8 }} className="text-white">Đến: Lấy máu 01 — Tầng 1, khu A</p>
+            <p style={{ fontSize: 13, opacity: 0.8 }} className="text-white">Đến: {destination} — {floor}</p>
           </div>
           <button
             onClick={() => setShowRoute((v) => !v)}
@@ -167,7 +181,7 @@ export function MapScreen({ onBack }: MapScreenProps) {
 
       {/* Map */}
       <div className="relative bg-slate-100" style={{ height: 280 }}>
-        <FloorMap floor={activeFloor} showRoute={showRoute && activeFloor === 1} />
+        <FloorMap floor={activeFloor} showRoute={showRoute && activeFloor === destinationFloor} destination={destination} />
 
         {/* Legend */}
         <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur rounded-xl border border-border px-3 py-2 flex flex-col gap-1.5">
@@ -193,8 +207,8 @@ export function MapScreen({ onBack }: MapScreenProps) {
             <MapPin size={18} className="text-primary" />
           </div>
           <div className="flex-1">
-            <p style={{ fontSize: 16 }} className="text-foreground">Lấy máu 01</p>
-            <p style={{ fontSize: 13 }} className="text-muted-foreground">Tầng 1, khu A · Cách ~60 m</p>
+            <p style={{ fontSize: 16 }} className="text-foreground">{destination}</p>
+            <p style={{ fontSize: 13 }} className="text-muted-foreground">{floor} · Di chuyển khoảng {travelMinutes} phút</p>
           </div>
           <div className="flex items-center gap-1.5 bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full flex-shrink-0">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />

@@ -1,6 +1,10 @@
 import { CheckCircle2, Navigation, FileText, Clock } from "lucide-react";
+import type { Route } from "../model/patient-flow.types";
 
 interface CompletionScreenProps {
+  route?: Route;
+  doctorName?: string;
+  doctorRoomCode?: string;
   onShowDirections: () => void;
 }
 
@@ -10,7 +14,26 @@ const completedServices = [
   { name: "Siêu âm bụng", readyAt: "11:22", status: "Sẵn sàng cho bác sĩ" },
 ];
 
-export function CompletionScreen({ onShowDirections }: CompletionScreenProps) {
+export function CompletionScreen({
+  route,
+  doctorName = "BS. Trần Văn Hùng",
+  doctorRoomCode = "205",
+  onShowDirections,
+}: CompletionScreenProps) {
+  const services = route
+    ? route.stepDetails
+        .filter((step) => step.serviceCode !== "doctor_return")
+        .map((step) => ({
+          name: step.serviceName,
+          readyAt: "Vừa xong",
+          status: "Sẵn sàng cho bác sĩ",
+        }))
+    : completedServices;
+  const doctorStep = route?.stepDetails.find(
+    (step) => step.serviceCode === "doctor_return",
+  );
+  const returnRoom = doctorStep?.roomName ?? `Phòng khám ${doctorRoomCode}`;
+  const returnFloor = doctorStep?.floor ?? "Tầng đang khám";
   return (
     <div className="flex flex-col min-h-full bg-background pb-24">
       {/* Header */}
@@ -30,7 +53,7 @@ export function CompletionScreen({ onShowDirections }: CompletionScreenProps) {
           Dịch vụ đã hoàn tất
         </p>
         <div className="flex flex-col gap-2">
-          {completedServices.map((svc, idx) => (
+          {services.map((svc, idx) => (
             <div key={idx} className="bg-card rounded-xl border border-border p-4 flex items-center gap-3">
               <CheckCircle2 size={22} className="text-emerald-500 flex-shrink-0" fill="#ecfdf5" />
               <div className="flex-1">
@@ -52,13 +75,13 @@ export function CompletionScreen({ onShowDirections }: CompletionScreenProps) {
           <Navigation size={20} className="text-primary flex-shrink-0 mt-0.5" />
           <div>
             <p style={{ fontSize: 15 }} className="text-foreground mb-1">
-              Quay lại Phòng khám Tim mạch 205
+              Quay lại {returnRoom}
             </p>
-            <p style={{ fontSize: 13 }} className="text-muted-foreground mb-1">Tầng 2, khu A — BS. Trần Văn Hùng</p>
+            <p style={{ fontSize: 13 }} className="text-muted-foreground mb-1">{returnFloor} — {doctorName}</p>
             <div className="flex items-center gap-1.5 mt-2">
               <Clock size={13} className="text-muted-foreground" />
               <p style={{ fontSize: 13 }} className="text-muted-foreground">
-                Bác sĩ có thể tiếp nhận từ 11:30 đến 12:00
+                Hệ thống sẽ cập nhật thời điểm bác sĩ có thể tiếp nhận
               </p>
             </div>
           </div>

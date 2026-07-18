@@ -8,7 +8,7 @@ def test_reset_creates_rooms_patients_and_mixed_room_statuses() -> None:
     snapshot = service.get_snapshot()
 
     assert snapshot.is_demo is True
-    assert snapshot.summary.total_rooms == 8
+    assert snapshot.summary.total_rooms == 11
     assert len(snapshot.patients) == 24
     assert snapshot.summary.paused_rooms == 1
     assert snapshot.summary.waiting_patients > 0

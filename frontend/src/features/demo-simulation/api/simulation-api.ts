@@ -1,6 +1,7 @@
 import { apiRequest } from '../../../shared/api/http-client'
 import {
   simulationSnapshotSchema,
+  type CreateSimulationRoomPayload,
   type SimulationSnapshot,
 } from '../model/simulation.schemas'
 
@@ -34,6 +35,29 @@ export function updateRoomOperation(
         operational,
         reason: operational ? null : 'Giả lập sự cố thiết bị từ màn hình demo.',
       }),
+    },
+  )
+}
+
+export function createSimulationRoom(
+  payload: CreateSimulationRoomPayload,
+): Promise<SimulationSnapshot> {
+  return apiRequest('/simulation/rooms', simulationSnapshotSchema, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function adjustRoomQueue(
+  roomCode: string,
+  delta: number,
+): Promise<SimulationSnapshot> {
+  return apiRequest(
+    `/simulation/rooms/${encodeURIComponent(roomCode)}/queue`,
+    simulationSnapshotSchema,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ delta }),
     },
   )
 }

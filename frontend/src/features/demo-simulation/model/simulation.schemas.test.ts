@@ -25,6 +25,7 @@ describe('dữ liệu mô phỏng', () => {
       rooms: [
         {
           code: 'XN-101',
+          location_code: '101 K1',
           name: 'Phòng lấy máu 01',
           department: 'Xét nghiệm',
           floor: 'Tầng 1',

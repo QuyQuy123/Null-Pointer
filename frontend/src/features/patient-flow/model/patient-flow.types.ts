@@ -54,4 +54,8 @@ export interface RouteReservation {
   expiresAt: string
   journeyId?: string
   extensionCount: number
+  patientCode?: string
+  clinicalOrderId?: string
+  currentStep: number
+  journeyStatus: 'not_started' | 'active' | 'completed'
 }

@@ -117,6 +117,8 @@ module/
 
 Không bắt buộc tạo tất cả tệp khi mô-đun chưa có nghiệp vụ. Không được đặt toàn bộ hệ thống vào một `services/` hoặc `models/` chung.
 
+`clinical_orders/` chứa thực thể, quy tắc và cổng kho dữ liệu cho danh mục cận lâm sàng. Bộ lưu SQLite dùng cho demo nằm trong `simulation/`; khi kết nối thật, adapter HIS/LIS/RIS-PACS được đặt trong `integrations/` tương ứng và tuân theo cùng cổng dữ liệu.
+
 ## 4. AI
 
 Tên chuẩn là `ai/` viết thường để nhất quán trên Windows, Linux và hệ thống triển khai. Không tạo thêm `AI/`, `Ai/` hoặc `ml/`.

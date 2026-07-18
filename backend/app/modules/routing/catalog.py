@@ -30,6 +30,12 @@ SERVICE_CATALOG = {
             "Lấy máu trước để mẫu được xử lý trong lúc thực hiện các dịch vụ khác."
         ),
     ),
+    ServiceCode.URINE_TEST: ServiceDefinition(
+        code=ServiceCode.URINE_TEST,
+        name="Nhận mẫu nước tiểu",
+        room_service_type="urine_test",
+        result_turnaround_minutes=45,
+    ),
     ServiceCode.CHEST_XRAY: ServiceDefinition(
         code=ServiceCode.CHEST_XRAY,
         name="Chụp X-quang ngực",

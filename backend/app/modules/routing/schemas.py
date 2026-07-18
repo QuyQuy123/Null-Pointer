@@ -20,6 +20,7 @@ class ScheduleStrategy(StrEnum):
 
 class ServiceCode(StrEnum):
     BLOOD_TEST = "blood_test"
+    URINE_TEST = "urine_test"
     CHEST_XRAY = "chest_xray"
     ABDOMINAL_ULTRASOUND = "abdominal_ultrasound"
     CT_SCAN = "ct_scan"

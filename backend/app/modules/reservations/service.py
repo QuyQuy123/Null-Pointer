@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from threading import RLock
 from uuid import uuid4
@@ -8,28 +7,19 @@ from app.modules.reservations.exceptions import (
     ReservationNotFoundError,
     ReservationStateError,
 )
+from app.modules.reservations.repository import (
+    InMemoryRouteReservationRepository,
+    ReservationRecord,
+    RouteReservationRepository,
+)
 from app.modules.reservations.schemas import (
     CreateRouteReservationRequest,
+    JourneyStatus,
     ReservationStatus,
     RouteReservationResponse,
 )
 from app.modules.routing.runtime import route_proposal_service
 from app.modules.routing.service import RouteProposalService
-
-
-@dataclass
-class ReservationRecord:
-    id: str
-    encounter_id: str
-    route_proposal_id: str
-    route_option_id: str
-    idempotency_key: str
-    status: ReservationStatus
-    created_at: datetime
-    expires_at: datetime
-    confirmed_at: datetime | None = None
-    journey_id: str | None = None
-    extension_count: int = 0
 
 
 class RouteReservationService:
@@ -39,11 +29,11 @@ class RouteReservationService:
         self,
         proposal_service: RouteProposalService | None = None,
         hold_seconds: int = 120,
+        repository: RouteReservationRepository | None = None,
     ) -> None:
         self._proposal_service = proposal_service or route_proposal_service
         self._hold_seconds = hold_seconds
-        self._records: dict[str, ReservationRecord] = {}
-        self._idempotency_index: dict[str, str] = {}
+        self._repository = repository or InMemoryRouteReservationRepository()
         self._lock = RLock()
 
     def create_hold(
@@ -52,10 +42,10 @@ class RouteReservationService:
     ) -> RouteReservationResponse:
         now = datetime.now(UTC)
         with self._lock:
-            existing_id = self._idempotency_index.get(request.idempotency_key)
-            if existing_id is not None:
-                existing = self._records[existing_id]
-                self._expire_if_needed(existing, now)
+            existing = self._repository.get_by_idempotency_key(request.idempotency_key)
+            if existing is not None:
+                if self._expire_if_needed(existing, now):
+                    self._repository.save(existing)
                 if existing.status in {
                     ReservationStatus.HELD,
                     ReservationStatus.CONFIRMED,
@@ -76,16 +66,18 @@ class RouteReservationService:
                 status=ReservationStatus.HELD,
                 created_at=now,
                 expires_at=now + timedelta(seconds=self._hold_seconds),
+                patient_code=request.patient_code,
+                clinical_order_id=request.clinical_order_id,
             )
-            self._records[record.id] = record
-            self._idempotency_index[request.idempotency_key] = record.id
+            self._repository.save(record)
             return self._to_response(record)
 
     def confirm(self, reservation_id: str) -> RouteReservationResponse:
         now = datetime.now(UTC)
         with self._lock:
             record = self._get_record(reservation_id)
-            self._expire_if_needed(record, now)
+            if self._expire_if_needed(record, now):
+                self._repository.save(record)
             if record.status is ReservationStatus.CONFIRMED:
                 return self._to_response(record)
             if record.status is ReservationStatus.EXPIRED:
@@ -95,13 +87,16 @@ class RouteReservationService:
             record.status = ReservationStatus.CONFIRMED
             record.confirmed_at = now
             record.journey_id = record.journey_id or f"journey-{uuid4()}"
+            record.journey_status = JourneyStatus.ACTIVE
+            self._repository.save(record)
             return self._to_response(record)
 
     def extend(self, reservation_id: str) -> RouteReservationResponse:
         now = datetime.now(UTC)
         with self._lock:
             record = self._get_record(reservation_id)
-            self._expire_if_needed(record, now)
+            if self._expire_if_needed(record, now):
+                self._repository.save(record)
             if record.status is ReservationStatus.EXPIRED:
                 raise ReservationExpiredError("Chỗ giữ đã hết hạn")
             if record.status is not ReservationStatus.HELD:
@@ -112,23 +107,48 @@ class RouteReservationService:
             record.expires_at = max(now, record.expires_at) + timedelta(
                 seconds=self._hold_seconds
             )
+            self._repository.save(record)
+            return self._to_response(record)
+
+    def get_latest_for_patient(self, patient_code: str) -> RouteReservationResponse:
+        with self._lock:
+            record = self._repository.get_latest_for_patient(patient_code.strip())
+            if record is None:
+                raise ReservationNotFoundError("Bệnh nhân chưa có hành trình đã lưu")
+            return self._to_response(record)
+
+    def update_progress(
+        self,
+        reservation_id: str,
+        *,
+        current_step: int,
+        journey_status: JourneyStatus,
+    ) -> RouteReservationResponse:
+        with self._lock:
+            record = self._get_record(reservation_id)
+            if record.status is not ReservationStatus.CONFIRMED:
+                raise ReservationStateError("Chỉ cập nhật được hành trình đã xác nhận")
+            record.current_step = current_step
+            record.journey_status = journey_status
+            self._repository.save(record)
             return self._to_response(record)
 
     def reset(self) -> None:
         with self._lock:
-            self._records.clear()
-            self._idempotency_index.clear()
+            self._repository.clear()
 
     def _get_record(self, reservation_id: str) -> ReservationRecord:
-        record = self._records.get(reservation_id)
+        record = self._repository.get_by_id(reservation_id)
         if record is None:
             raise ReservationNotFoundError("Không tìm thấy lượt giữ chỗ")
         return record
 
     @staticmethod
-    def _expire_if_needed(record: ReservationRecord, now: datetime) -> None:
+    def _expire_if_needed(record: ReservationRecord, now: datetime) -> bool:
         if record.status is ReservationStatus.HELD and record.expires_at <= now:
             record.status = ReservationStatus.EXPIRED
+            return True
+        return False
 
     @staticmethod
     def _to_response(record: ReservationRecord) -> RouteReservationResponse:
@@ -144,4 +164,8 @@ class RouteReservationService:
             confirmed_at=record.confirmed_at,
             journey_id=record.journey_id,
             extension_count=record.extension_count,
+            patient_code=record.patient_code,
+            clinical_order_id=record.clinical_order_id,
+            current_step=record.current_step,
+            journey_status=record.journey_status,
         )

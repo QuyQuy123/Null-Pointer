@@ -86,6 +86,14 @@ Sau đó mở:
 http://localhost:5173/demo/simulation
 ```
 
+Trang nhập và lưu danh mục cận lâm sàng:
+
+```text
+http://localhost:5173/demo/hospital-data
+```
+
+Chi tiết trường dữ liệu, API và cách thay bộ giả lập bằng kết nối bệnh viện thật nằm trong [tài liệu bộ giả lập dữ liệu cận lâm sàng](hospital-data-simulator.md).
+
 Hoặc chạy frontend và backend riêng theo [hướng dẫn chạy dự án](getting-started.md).
 
 ## 6. Thao tác trình diễn đề xuất
@@ -100,7 +108,8 @@ Hoặc chạy frontend và backend riêng theo [hướng dẫn chạy dự án](
 
 ## 7. Giới hạn
 
-- Dữ liệu không được lưu vào cơ sở dữ liệu.
+- Trạng thái đồng hồ, hàng chờ và bệnh nhân mô phỏng chưa được lưu vào cơ sở dữ liệu.
+- Danh mục cận lâm sàng do người vận hành nhập được lưu trong SQLite để dùng lại sau khi khởi động backend.
 - Không kết nối hệ thống bệnh viện thật.
 - Không mô phỏng kết quả xét nghiệm hoặc chẩn đoán.
 - Không được dùng dữ liệu này để đánh giá hay xử trí bệnh nhân thật.

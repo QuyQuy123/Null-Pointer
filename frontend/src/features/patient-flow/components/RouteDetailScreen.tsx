@@ -18,59 +18,22 @@ interface Step {
   alternativeRooms?: { name: string; wait: string; elevator: boolean }[];
 }
 
-const buildSteps = (route: Route): Step[] => [
-  {
-    name: "Xét nghiệm máu",
-    room: route.id === "lessWalk" ? "Lấy máu 02" : route.id === "lessCrowd" ? "Lấy máu 03" : "Lấy máu 01",
-    floor: "Tầng 1",
-    waitTime: route.waitTimes[0],
-    duration: "5–10 phút",
-    resultTime: "10:45–11:00",
-    distance: "Điểm xuất phát",
-    locked: true,
-    lockReason: "Cần lấy máu trước để mẫu xử lý trong lúc bạn làm các bước tiếp theo",
-    canChange: false,
-    note: "Nhịn ăn — đã đáp ứng điều kiện",
-  },
-  {
-    name: "Chụp X-quang ngực",
-    room: route.id === "lessWalk" ? "X-quang 01" : route.id === "lessCrowd" ? "X-quang 02" : "X-quang 03",
-    floor: route.id === "lessWalk" ? "Tầng 1" : "Tầng 2",
-    waitTime: route.waitTimes[1],
-    duration: "10 phút",
-    resultTime: "11:00–11:15",
-    distance: route.id === "lessWalk" ? "Cách 40 m, cùng tầng" : "Cách 120 m, lên 1 tầng",
-    canChange: true,
-    alternativeRooms: [
-      { name: "X-quang 04 — tầng 2, khu A", wait: "8–15 phút", elevator: true },
-      { name: "X-quang 05 — tầng 3, khu B", wait: "5–10 phút", elevator: true },
-    ],
-  },
-  {
-    name: "Siêu âm bụng",
-    room: route.id === "lessWalk" ? "Siêu âm 02" : route.id === "lessCrowd" ? "Siêu âm 04" : "Siêu âm 05",
-    floor: route.id === "lessWalk" ? "Tầng 1" : "Tầng 2",
-    waitTime: route.waitTimes[2],
-    duration: "20–25 phút",
-    resultTime: "11:15–11:35",
-    distance: route.id === "lessWalk" ? "Cách 25 m, cùng tầng" : "Cách 80 m, cùng tầng",
-    note: "Tiếp tục nhịn ăn trong suốt hành trình",
-    canChange: true,
-    alternativeRooms: [
-      { name: "Siêu âm 06 — tầng 2, khu B", wait: "10–20 phút", elevator: false },
-    ],
-  },
-  {
-    name: "Quay lại bác sĩ",
-    room: "Phòng khám Tim mạch 205",
-    floor: "Tầng 2",
-    waitTime: "",
-    duration: "",
-    resultTime: "Khi đủ 3 kết quả",
-    distance: "",
-    canChange: false,
-  },
-];
+const buildSteps = (route: Route): Step[] => route.stepDetails.map((step) => ({
+  name: step.serviceName,
+  room: step.roomName,
+  floor: step.floor,
+  waitTime: `${step.waitMinutesMin}–${step.waitMinutesMax} phút`,
+  duration: `${step.serviceMinutes} phút`,
+  resultTime: step.serviceCode === "doctor_return"
+    ? "Khi đủ kết quả bắt buộc"
+    : "Sau khi phòng hoàn tất xử lý",
+  distance: step.travelMinutes === 0
+    ? "Đang ở đúng khu vực"
+    : `Di chuyển khoảng ${step.travelMinutes} phút`,
+  locked: step.isLocked,
+  lockReason: step.lockReason,
+  canChange: false,
+}));
 
 interface RouteDetailScreenProps {
   route: Route;
@@ -86,12 +49,9 @@ export function RouteDetailScreen({ route, onBack, onConfirm }: RouteDetailScree
   const [showComparison, setShowComparison] = useState(false);
   const [appliedChanges, setAppliedChanges] = useState<Record<number, number>>({});
 
-  const reasons = [
-    "Lấy máu trước để mẫu được xử lý trong lúc bạn chụp X-quang. Siêu âm được xếp tiếp theo vì bạn đang cần nhịn ăn.",
-    "X-quang không cần chuẩn bị đặc biệt và kết quả sẵn sàng nhanh. Xếp sau lấy máu để tận dụng thời gian chờ.",
-    "Siêu âm cần nhịn ăn và bạn đã đáp ứng điều kiện này. Xếp cuối để hoàn thành trong cùng điều kiện chuẩn bị.",
-    "Hệ thống sẽ thông báo khi đủ kết quả bắt buộc để quay lại bác sĩ.",
-  ];
+  const reasons = route.stepDetails.map(
+    (step) => step.lockReason ?? route.reason,
+  );
 
   function handleApplyChange() {
     if (selectedAlternative) {

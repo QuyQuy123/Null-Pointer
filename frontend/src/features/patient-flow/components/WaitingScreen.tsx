@@ -11,20 +11,13 @@ interface WaitingScreenProps {
   onNeedSupport: () => void;
 }
 
-const stepNames = ["Lấy máu", "Chụp X-quang", "Siêu âm bụng"];
-const stepLocations = [
-  "Lấy máu 01 — tầng 1, khu A",
-  "X-quang 03 — tầng 2, khu A",
-  "Siêu âm 05 — tầng 2, khu A",
-];
-const stepQueueSizes = [3, 7, 2];
-
 export function WaitingScreen({ route, currentStep, onNext, onNeedSupport }: WaitingScreenProps) {
   const [elapsed, setElapsed] = useState(0);
   const [canLeave, setCanLeave] = useState(false);
 
-  const maxWait = currentStep === 0 ? 10 : currentStep === 1 ? 20 : 25;
-  const minWait = currentStep === 0 ? 5 : currentStep === 1 ? 10 : 15;
+  const step = route.stepDetails[currentStep] ?? route.stepDetails.at(-1);
+  const maxWait = step?.waitMinutesMax ?? 0;
+  const minWait = step?.waitMinutesMin ?? 0;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -39,9 +32,12 @@ export function WaitingScreen({ route, currentStep, onNext, onNeedSupport }: Wai
   const elapsedMinutes = Math.floor(elapsed / 60);
   const elapsedSeconds = elapsed % 60;
 
-  const stepName = currentStep < 3 ? stepNames[currentStep] : "Quay lại bác sĩ";
-  const location = currentStep < 3 ? stepLocations[currentStep] : "Phòng khám Tim mạch 205";
-  const queueAhead = Math.max(0, stepQueueSizes[currentStep] - Math.floor(elapsedMinutes / 3));
+  const stepName = step?.serviceName ?? "Điểm đến tiếp theo";
+  const location = step ? `${step.roomName} — ${step.floor}` : "Đang cập nhật phòng";
+  const estimatedQueueSize = step
+    ? Math.ceil(maxWait / Math.max(step.serviceMinutes, 1))
+    : 0;
+  const queueAhead = Math.max(0, estimatedQueueSize - Math.floor(elapsedMinutes / 3));
 
   return (
     <div className="flex flex-col min-h-full bg-background pb-20">
@@ -85,8 +81,8 @@ export function WaitingScreen({ route, currentStep, onNext, onNeedSupport }: Wai
         <div className="flex items-center gap-2 mb-3">
           <Info size={16} className="text-muted-foreground" />
           <p style={{ fontSize: 14 }} className="text-foreground">
-            Các bước dự kiến hoàn tất từ{" "}
-            <span className="text-foreground">10:45 đến 11:05</span>
+            Dịch vụ dự kiến hoàn tất sau{" "}
+            <span className="text-foreground">{maxWait + (step?.serviceMinutes ?? 0)} phút</span>
           </p>
         </div>
 
@@ -105,13 +101,13 @@ export function WaitingScreen({ route, currentStep, onNext, onNeedSupport }: Wai
       <div className={`mx-4 mt-3 rounded-xl border p-4 transition-colors ${canLeave ? "bg-emerald-50 border-emerald-200" : "bg-muted border-border"}`}>
         <p style={{ fontSize: 14 }} className={canLeave ? "text-emerald-800" : "text-muted-foreground"}>
           {canLeave
-            ? "Bạn có thể rời khu chờ trong tối đa 5 phút. Quay lại trước 10:30."
+            ? "Bạn có thể rời khu chờ trong tối đa 5 phút và cần theo dõi thông báo gọi lượt."
             : "Vui lòng ở lại khu chờ cho đến khi được gọi."}
         </p>
       </div>
 
       {/* Next step preview */}
-      {currentStep < 2 && (
+      {currentStep < route.stepDetails.length - 1 && (
         <div className="mx-4 mt-3 bg-card rounded-xl border border-border p-4">
           <p style={{ fontSize: 12, letterSpacing: "0.05em" }} className="text-muted-foreground uppercase mb-2">Bước tiếp theo sau khi xong</p>
           <div className="flex items-center gap-2">
@@ -120,10 +116,10 @@ export function WaitingScreen({ route, currentStep, onNext, onNeedSupport }: Wai
             </div>
             <div>
               <p style={{ fontSize: 14 }} className="text-foreground">
-                {route.steps[currentStep + 1]?.split("—")[0]?.trim()}
+                {route.stepDetails[currentStep + 1]?.serviceName}
               </p>
               <p style={{ fontSize: 12 }} className="text-muted-foreground">
-                {route.steps[currentStep + 1]?.split("—")[1]?.trim()}
+                {route.stepDetails[currentStep + 1]?.roomName} — {route.stepDetails[currentStep + 1]?.floor}
               </p>
             </div>
           </div>

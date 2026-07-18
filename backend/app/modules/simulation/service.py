@@ -8,6 +8,11 @@ from app.modules.simulation.fixtures import (
     ROOM_SEEDS,
     RoomSeed,
 )
+from app.modules.simulation.room_repository import (
+    SimulationRoomConflictError,
+    SimulationRoomRepository,
+    StoredSimulationRoom,
+)
 from app.modules.simulation.schemas import (
     DemoPriority,
     EquipmentStatus,
@@ -26,6 +31,7 @@ from app.shared.enums import JourneyStepStatus
 class _RoomState:
     seed: RoomSeed
     operational: bool
+    manual_waiting_patients: int = 0
     current_patient_code: str | None = None
     remaining_service_minutes: int = 0
     status_reason: str | None = None
@@ -52,8 +58,12 @@ class HospitalSimulationService:
 
     data_notice = "Dữ liệu giả lập, không chứa thông tin bệnh nhân thật."
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        room_repository: SimulationRoomRepository | None = None,
+    ) -> None:
         self._lock = RLock()
+        self._room_repository = room_repository
         self._rooms: dict[str, _RoomState] = {}
         self._patients: dict[str, _PatientState] = {}
         self._events: list[SimulationEventResponse] = []
@@ -70,18 +80,7 @@ class HospitalSimulationService:
             self._patient_sequence = 0
             self._simulation_time = datetime.now(UTC).replace(microsecond=0)
             self._events = []
-            self._rooms = {
-                seed.code: _RoomState(
-                    seed=seed,
-                    operational=seed.initially_operational,
-                    status_reason=(
-                        None
-                        if seed.initially_operational
-                        else "Bảo trì thiết bị theo kịch bản demo."
-                    ),
-                )
-                for seed in ROOM_SEEDS
-            }
+            self._rooms = self._load_room_states()
             self._patients = {}
 
             for index in range(INITIAL_PATIENT_COUNT):
@@ -145,10 +144,134 @@ class HospitalSimulationService:
                 message = f"{room.seed.name} tạm dừng: {room.status_reason}"
                 self._return_current_patient_to_queue(room)
 
+            if self._room_repository is not None:
+                self._room_repository.update_operation(
+                    room_code,
+                    operational=room.operational,
+                    status_reason=room.status_reason,
+                )
+
             self._record_event(event_type, message, room_code=room_code)
             if operational:
                 self._start_waiting_patients()
             return self._build_snapshot()
+
+    def create_room(
+        self,
+        seed: RoomSeed,
+        *,
+        operational: bool,
+        initial_waiting_patients: int,
+    ) -> SimulationSnapshot:
+        with self._lock:
+            if seed.code in self._rooms:
+                raise SimulationRoomConflictError("Mã phòng đã tồn tại.")
+            if any(
+                room.seed.location_code == seed.location_code
+                for room in self._rooms.values()
+            ):
+                raise SimulationRoomConflictError("Vị trí phòng đã tồn tại.")
+
+            status_reason = None if operational else "Tạm dừng khi tạo phòng mô phỏng."
+            stored_room = StoredSimulationRoom(
+                seed=seed,
+                operational=operational,
+                manual_waiting_patients=initial_waiting_patients,
+                status_reason=status_reason,
+            )
+            if self._room_repository is not None:
+                self._room_repository.create_room(stored_room)
+
+            self._rooms[seed.code] = _RoomState(
+                seed=seed,
+                operational=operational,
+                manual_waiting_patients=initial_waiting_patients,
+                status_reason=status_reason,
+            )
+            self._record_event(
+                SimulationEventType.ROOM_CREATED,
+                f"Đã thêm {seed.name} vào hệ thống giả lập.",
+                room_code=seed.code,
+            )
+            return self._build_snapshot()
+
+    def adjust_room_queue(self, room_code: str, delta: int) -> SimulationSnapshot:
+        with self._lock:
+            room = self._rooms.get(room_code)
+            if room is None:
+                raise KeyError(room_code)
+
+            actual_waiting = self._waiting_patients_for_room(room_code)
+            current_total = len(actual_waiting) + room.manual_waiting_patients
+            target_total = max(0, current_total + delta)
+            applied_delta = target_total - current_total
+
+            if applied_delta > 0:
+                room.manual_waiting_patients += applied_delta
+            elif applied_delta < 0:
+                remaining_to_remove = -applied_delta
+                removed_manual = min(room.manual_waiting_patients, remaining_to_remove)
+                room.manual_waiting_patients -= removed_manual
+                remaining_to_remove -= removed_manual
+                if remaining_to_remove > 0:
+                    for patient in reversed(actual_waiting[-remaining_to_remove:]):
+                        self._patients.pop(patient.code, None)
+
+            if self._room_repository is not None:
+                self._room_repository.update_manual_waiting(
+                    room_code,
+                    room.manual_waiting_patients,
+                )
+
+            direction = "tăng" if applied_delta >= 0 else "giảm"
+            self._record_event(
+                SimulationEventType.QUEUE_ADJUSTED,
+                (
+                    f"Đã {direction} hàng chờ tại {room.seed.name} "
+                    f"{abs(applied_delta)} người; hiện có {target_total} người chờ."
+                ),
+                room_code=room_code,
+            )
+            return self._build_snapshot()
+
+    def _load_room_states(self) -> dict[str, _RoomState]:
+        if self._room_repository is not None:
+            fixture_defaults = {seed.code: seed for seed in ROOM_SEEDS}
+            return {
+                room.seed.code: _RoomState(
+                    seed=room.seed,
+                    operational=(
+                        fixture_defaults[room.seed.code].initially_operational
+                        if room.seed.code in fixture_defaults
+                        else room.operational
+                    ),
+                    manual_waiting_patients=room.manual_waiting_patients,
+                    status_reason=(
+                        "Bảo trì thiết bị theo kịch bản demo."
+                        if room.seed.code in fixture_defaults
+                        and not fixture_defaults[room.seed.code].initially_operational
+                        else (
+                            None
+                            if room.seed.code in fixture_defaults
+                            else room.status_reason
+                        )
+                    ),
+                )
+                for room in self._room_repository.list_rooms()
+            }
+
+        return {
+            seed.code: _RoomState(
+                seed=seed,
+                operational=seed.initially_operational,
+                status_reason=(
+                    None
+                    if seed.initially_operational
+                    else "Bảo trì thiết bị theo kịch bản demo."
+                ),
+            )
+            for seed in ROOM_SEEDS
+        }
 
     def _add_patient(
         self,
@@ -296,9 +419,7 @@ class HospitalSimulationService:
             serving_rooms=sum(room.status == RoomStatus.SERVING for room in rooms),
             overloaded_rooms=sum(room.status == RoomStatus.OVERLOADED for room in rooms),
             paused_rooms=sum(room.status == RoomStatus.PAUSED for room in rooms),
-            waiting_patients=sum(
-                patient.status == JourneyStepStatus.WAITING for patient in patients
-            ),
+            waiting_patients=sum(room.waiting_patients for room in rooms),
             in_service_patients=sum(
                 patient.status == JourneyStepStatus.IN_SERVICE for patient in patients
             ),
@@ -322,7 +443,7 @@ class HospitalSimulationService:
 
     def _build_room_snapshot(self, room: _RoomState) -> RoomSnapshot:
         waiting = self._waiting_patients_for_room(room.seed.code)
-        waiting_count = len(waiting)
+        waiting_count = len(waiting) + room.manual_waiting_patients
         status = self._room_status(room, waiting_count)
         estimated_wait = (
             room.remaining_service_minutes
@@ -330,6 +451,7 @@ class HospitalSimulationService:
         )
         return RoomSnapshot(
             code=room.seed.code,
+            location_code=room.seed.location_code or room.seed.code,
             name=room.seed.name,
             department=room.seed.department,
             floor=room.seed.floor,
@@ -341,7 +463,16 @@ class HospitalSimulationService:
                 else EquipmentStatus.MAINTENANCE
             ),
             waiting_patients=waiting_count,
-            waiting_patient_codes=[patient.code for patient in waiting[:6]],
+            waiting_patient_codes=(
+                [patient.code for patient in waiting[:6]]
+                + [
+                    f"GIẢ-LẬP-{index:02d}"
+                    for index in range(
+                        1,
+                        min(room.manual_waiting_patients, max(0, 6 - len(waiting))) + 1,
+                    )
+                ]
+            ),
             current_patient_code=room.current_patient_code,
             average_service_minutes=room.seed.average_service_minutes,
             estimated_wait_minutes=estimated_wait,

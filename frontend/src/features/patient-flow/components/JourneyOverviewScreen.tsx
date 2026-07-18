@@ -8,22 +8,17 @@ interface JourneyOverviewScreenProps {
 }
 
 export function JourneyOverviewScreen({ route, currentStep }: JourneyOverviewScreenProps) {
-  const allSteps = [
-    ...route.steps.map((s, i) => ({
-      name: s.split("—")[0]?.trim() ?? s,
-      location: s.split("—")[1]?.trim() ?? "",
-      wait: route.waitTimes[i],
-      result: i === 0 ? "10:45–11:00" : i === 1 ? "11:00–11:15" : "11:15–11:35",
-    })),
-    {
-      name: "Quay lại bác sĩ",
-      location: "Phòng khám Tim mạch 205",
-      wait: "",
-      result: "Khi đủ 3 kết quả",
-    },
-  ];
+  const allSteps = route.stepDetails.map((step) => ({
+    name: step.serviceName,
+    location: `${step.roomName} — ${step.floor}`,
+    wait: `${step.waitMinutesMin}–${step.waitMinutesMax} phút`,
+    result: step.serviceCode === "doctor_return"
+      ? step.lockReason ?? "Khi đủ kết quả bắt buộc"
+      : "Sau khi phòng hoàn tất xử lý",
+  }));
 
   const completedCount = currentStep;
+  const totalSteps = allSteps.length;
 
   return (
     <div className="flex flex-col min-h-full bg-background pb-24">
@@ -34,10 +29,10 @@ export function JourneyOverviewScreen({ route, currentStep }: JourneyOverviewScr
           <div className="flex-1 bg-muted rounded-full h-2">
             <div
               className="bg-primary rounded-full h-2 transition-all"
-              style={{ width: `${(completedCount / 4) * 100}%` }}
+              style={{ width: `${(completedCount / Math.max(totalSteps, 1)) * 100}%` }}
             />
           </div>
-          <span style={{ fontSize: 13 }} className="text-muted-foreground">{completedCount}/4</span>
+          <span style={{ fontSize: 13 }} className="text-muted-foreground">{completedCount}/{totalSteps}</span>
         </div>
       </div>
 

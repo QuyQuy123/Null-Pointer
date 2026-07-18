@@ -289,6 +289,36 @@ Bệnh nhân có thể đồng ý, giữ lộ trình hiện tại hoặc nhờ h
 
 Màn hình hoàn tất hiển thị dịch vụ đã xong, trạng thái kết quả, phòng bác sĩ, khoảng tiếp nhận và nút chỉ đường quay lại.
 
+### FR-SIM — Dữ liệu bệnh viện giả lập
+
+#### FR-SIM-001: Nhập danh mục cận lâm sàng
+
+Người vận hành có thể nhập mã, tên, nhóm dịch vụ, loại phòng phục vụ, thời gian thực hiện, TAT, điều kiện nhịn ăn, quy tắc ưu tiên, lưu ý và danh sách phòng hoặc tòa.
+
+#### FR-SIM-002: Lưu và sửa dữ liệu
+
+Dữ liệu phải được kiểm tra trước khi lưu vào SQLite, không mất khi khởi động lại backend và tăng phiên bản sau mỗi lần sửa.
+
+#### FR-SIM-003: Ngừng sử dụng an toàn
+
+Ngừng sử dụng không xóa bản ghi. Dịch vụ ngừng dùng vẫn xuất hiện ở trang quản trị nhưng không được đưa vào nguồn dữ liệu đang hoạt động.
+
+#### FR-SIM-004: Mô phỏng hợp đồng API bệnh viện
+
+Backend phải xuất danh mục đang hoạt động theo một hợp đồng có phiên bản và nguồn dữ liệu. Phần nghiệp vụ đọc qua cổng kho dữ liệu để bộ giả lập có thể được thay bằng adapter HIS, LIS hoặc RIS/PACS mà không đổi cấu trúc dữ liệu chung.
+
+#### FR-SIM-005: Gửi chỉ định cho bệnh nhân giả lập
+
+Người vận hành phải chọn bệnh nhân, lượt khám và một hoặc nhiều chỉ định còn hoạt động. Hệ thống chỉ gửi nguyên trạng các chỉ định đã chọn, không tự tạo hoặc thay đổi chỉ định của bác sĩ.
+
+#### FR-SIM-006: Tìm phòng phù hợp từ chỉ định
+
+Với mỗi chỉ định, hệ thống phải đối chiếu loại phòng phục vụ, danh sách phòng/tòa được cấu hình, trạng thái phòng, trạng thái thiết bị và hàng chờ. Phòng sai loại, ngoài danh sách hoặc tạm dừng không được xuất hiện trong phương án.
+
+#### FR-SIM-007: Bệnh nhân nhận lộ trình
+
+Sau khi điều phối thành công, bệnh nhân giả lập phải đọc được điểm đến đầu tiên và toàn bộ thứ tự phòng cần đến. Dữ liệu trên màn hình bệnh nhân phải cùng phiên bản với kết quả vừa gửi từ màn hình vận hành.
+
 ## 6. Yêu cầu phi chức năng
 
 **Yêu cầu phi chức năng** mô tả chất lượng vận hành thay vì một nút hoặc màn hình cụ thể.

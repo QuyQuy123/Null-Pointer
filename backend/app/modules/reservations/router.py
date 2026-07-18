@@ -9,6 +9,7 @@ from app.modules.reservations.runtime import reservation_service
 from app.modules.reservations.schemas import (
     CreateRouteReservationRequest,
     RouteReservationResponse,
+    UpdateJourneyProgressRequest,
 )
 from app.modules.routing.exceptions import (
     RouteOptionNotFoundError,
@@ -61,4 +62,37 @@ async def extend_route_reservation(reservation_id: str) -> RouteReservationRespo
     except ReservationNotFoundError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
     except (ReservationExpiredError, ReservationStateError) as error:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
+
+
+@router.get(
+    "/patients/{patient_code}/latest",
+    response_model=RouteReservationResponse,
+    summary="Lấy hành trình mới nhất đã lưu của bệnh nhân",
+)
+async def get_latest_patient_reservation(patient_code: str) -> RouteReservationResponse:
+    try:
+        return reservation_service.get_latest_for_patient(patient_code)
+    except ReservationNotFoundError as error:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
+
+
+@router.patch(
+    "/{reservation_id}/progress",
+    response_model=RouteReservationResponse,
+    summary="Lưu bước hành trình hiện tại của bệnh nhân",
+)
+async def update_journey_progress(
+    reservation_id: str,
+    request: UpdateJourneyProgressRequest,
+) -> RouteReservationResponse:
+    try:
+        return reservation_service.update_progress(
+            reservation_id,
+            current_step=request.current_step,
+            journey_status=request.journey_status,
+        )
+    except ReservationNotFoundError as error:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
+    except ReservationStateError as error:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error

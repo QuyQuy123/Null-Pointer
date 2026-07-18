@@ -19,8 +19,13 @@ import {
   Loader2,
 } from "lucide-react";
 import type { ScheduleStrategy } from "../model/patient-flow.types";
+import type {
+  ClinicalOrderDispatch,
+  ClinicalOrderItem,
+} from "../../../entities/clinical-order/model/clinical-order.schemas";
 
 interface DashboardScreenProps {
+  order?: ClinicalOrderDispatch;
   onStartJourney: (strategy?: ScheduleStrategy) => void;
   onViewMap: () => void;
 }
@@ -35,8 +40,43 @@ const menuTabs: { id: MenuTab; label: string; icon: React.ReactNode }[] = [
   { id: "support", label: "Hỗ trợ", icon: <HeadphonesIcon size={18} /> },
 ];
 
-export function DashboardScreen({ onStartJourney, onViewMap }: DashboardScreenProps) {
+const orderItemIcons: Record<ClinicalOrderItem["room_service_type"], string> = {
+  blood_test: "🩸",
+  urine_test: "🧪",
+  xray: "🫁",
+  ultrasound: "🔊",
+  ct_scan: "◉",
+};
+
+function getOrderItemNote(item: ClinicalOrderItem) {
+  if (item.notes) return item.notes;
+  if (item.fasting_policy === "required") return "Cần nhịn ăn trước khi thực hiện";
+  if (item.fasting_policy === "conditional") return "Nhịn ăn tùy loại xét nghiệm";
+  return "Không có điều kiện chuẩn bị đặc biệt";
+}
+
+const orderTimeFormatter = new Intl.DateTimeFormat("vi-VN", {
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+const orderDateFormatter = new Intl.DateTimeFormat("vi-VN", {
+  weekday: "long",
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
+function formatOrderMinute(isoDate: string, offsetMinutes: number) {
+  return orderTimeFormatter.format(new Date(new Date(isoDate).getTime() + offsetMinutes * 60_000));
+}
+
+export function DashboardScreen({ order, onStartJourney, onViewMap }: DashboardScreenProps) {
   const [activeTab, setActiveTab] = useState<MenuTab>("today");
+  const patientName = order?.patient_name ?? "Nguyễn Thị Mai";
+  const patientCode = order?.patient_code ?? "BN-00847";
+  const encounterId = order?.encounter_id ?? "TM-2026-00847";
+  const doctorName = order?.doctor_name ?? "BS. Trần Văn Hùng";
 
   return (
     <div className="flex flex-col min-h-full bg-background">
@@ -70,11 +110,11 @@ export function DashboardScreen({ onStartJourney, onViewMap }: DashboardScreenPr
             </div>
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <p style={{ fontSize: 19 }} className="text-white">Nguyễn Thị Mai</p>
-              <p style={{ fontSize: 13, opacity: 0.8 }} className="text-white">Sinh ngày 12/03/1968 · Nữ · 58 tuổi</p>
+              <p style={{ fontSize: 19 }} className="text-white">{patientName}</p>
+              <p style={{ fontSize: 13, opacity: 0.8 }} className="text-white">Dữ liệu lượt khám đang được đồng bộ từ bệnh viện</p>
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 <span className="bg-white/20 text-white px-2.5 py-1 rounded-full" style={{ fontSize: 12 }}>
-                  Mã BN: BN-00847
+                  Mã BN: {patientCode}
                 </span>
                 <span className="bg-emerald-400/30 text-emerald-100 px-2.5 py-1 rounded-full" style={{ fontSize: 12 }}>
                   ● Đang khám
@@ -87,11 +127,11 @@ export function DashboardScreen({ onStartJourney, onViewMap }: DashboardScreenPr
           <div className="mt-3 pt-3 border-t border-white/15 grid grid-cols-2 gap-2">
             <div>
               <p style={{ fontSize: 11, opacity: 0.7, letterSpacing: "0.05em" }} className="text-white uppercase">Lượt khám</p>
-              <p style={{ fontSize: 13 }} className="text-white mt-0.5">TM-2026-00847</p>
+              <p style={{ fontSize: 13 }} className="text-white mt-0.5">{encounterId}</p>
             </div>
             <div>
               <p style={{ fontSize: 11, opacity: 0.7, letterSpacing: "0.05em" }} className="text-white uppercase">Bác sĩ phụ trách</p>
-              <p style={{ fontSize: 13 }} className="text-white mt-0.5">BS. Trần Văn Hùng</p>
+              <p style={{ fontSize: 13 }} className="text-white mt-0.5">{doctorName}</p>
             </div>
           </div>
         </div>
@@ -118,10 +158,10 @@ export function DashboardScreen({ onStartJourney, onViewMap }: DashboardScreenPr
 
       {/* ── Tab content ── */}
       <div className="flex-1 overflow-y-auto">
-        {activeTab === "today" && <TodayTab onViewOrders={() => setActiveTab("orders")} />}
-        {activeTab === "orders" && <OrdersTab onViewSchedule={() => setActiveTab("schedule")} />}
-        {activeTab === "results" && <ResultsTab />}
-        {activeTab === "schedule" && <ScheduleTab onStartJourney={onStartJourney} onViewMap={onViewMap} />}
+        {activeTab === "today" && <TodayTab order={order} onViewOrders={() => setActiveTab("orders")} />}
+        {activeTab === "orders" && <OrdersTab order={order} onViewSchedule={() => setActiveTab("schedule")} />}
+        {activeTab === "results" && <ResultsTab order={order} />}
+        {activeTab === "schedule" && <ScheduleTab order={order} onStartJourney={onStartJourney} onViewMap={onViewMap} />}
         {activeTab === "support" && <SupportTab />}
       </div>
     </div>
@@ -129,7 +169,12 @@ export function DashboardScreen({ onStartJourney, onViewMap }: DashboardScreenPr
 }
 
 /* ── Today tab ── */
-function TodayTab({ onViewOrders }: { onViewOrders: () => void }) {
+function TodayTab({ order, onViewOrders }: { order?: ClinicalOrderDispatch; onViewOrders: () => void }) {
+  const itemCount = order?.items.length ?? 3;
+  const itemNames = order?.items.map((item) => item.service_name).join(" · ")
+    ?? "Xét nghiệm máu · X-quang · Siêu âm bụng";
+  const doctorName = order?.doctor_name ?? "BS. Trần Văn Hùng";
+  const doctorRoom = order?.doctor_room_code ?? "205";
   return (
     <div className="flex flex-col gap-3 px-4 pt-4 pb-8">
       {/* Active task banner */}
@@ -139,9 +184,9 @@ function TodayTab({ onViewOrders }: { onViewOrders: () => void }) {
             <AlertCircle size={20} className="text-amber-600" />
           </div>
           <div>
-            <p style={{ fontSize: 15 }} className="text-amber-900">Bác sĩ vừa gửi 3 chỉ định mới</p>
+            <p style={{ fontSize: 15 }} className="text-amber-900">Bác sĩ vừa gửi {itemCount} chỉ định mới</p>
             <p style={{ fontSize: 13 }} className="text-amber-700 mt-0.5">
-              Xét nghiệm máu · X-quang · Siêu âm bụng
+              {itemNames}
             </p>
           </div>
         </div>
@@ -179,8 +224,8 @@ function TodayTab({ onViewOrders }: { onViewOrders: () => void }) {
             },
             {
               time: "10:00",
-              title: "Khám với BS. Trần Văn Hùng",
-              sub: "Phòng 205 — đã hoàn tất · Ký 3 chỉ định",
+              title: `Khám với ${doctorName}`,
+              sub: `Phòng ${doctorRoom} — đã hoàn tất · Ký ${itemCount} chỉ định`,
               done: true,
               icon: <CheckCircle2 size={16} className="text-emerald-500" />,
             },
@@ -217,8 +262,8 @@ function TodayTab({ onViewOrders }: { onViewOrders: () => void }) {
         </div>
         <div className="flex-1">
           <p style={{ fontSize: 13 }} className="text-muted-foreground">Bác sĩ phụ trách</p>
-          <p style={{ fontSize: 15 }} className="text-foreground">BS. Trần Văn Hùng</p>
-          <p style={{ fontSize: 13 }} className="text-muted-foreground">Khoa Tim mạch · Phòng 205</p>
+          <p style={{ fontSize: 15 }} className="text-foreground">{doctorName}</p>
+          <p style={{ fontSize: 13 }} className="text-muted-foreground">Phòng khám · {doctorRoom}</p>
         </div>
         <ChevronRight size={16} className="text-muted-foreground" />
       </div>
@@ -227,19 +272,32 @@ function TodayTab({ onViewOrders }: { onViewOrders: () => void }) {
 }
 
 /* ── Orders tab ── */
-function OrdersTab({ onViewSchedule }: { onViewSchedule: () => void }) {
-  return (
-    <div className="flex flex-col gap-3 px-4 pt-4 pb-8">
-      <div className="flex items-center justify-between">
-        <p style={{ fontSize: 12, letterSpacing: "0.06em" }} className="text-muted-foreground uppercase">3 chỉ định mới</p>
-        <span className="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full" style={{ fontSize: 12 }}>Cần thực hiện</span>
-      </div>
-
-      {[
+function OrdersTab({ order, onViewSchedule }: { order?: ClinicalOrderDispatch; onViewSchedule: () => void }) {
+  const firstServiceCode = order?.route_proposal.options[0]?.steps.find(
+    (step) => step.service_code !== "doctor_return",
+  )?.service_code;
+  const services = order
+    ? order.items.map((item, index) => ({
+        icon: orderItemIcons[item.room_service_type],
+        name: item.service_name,
+        code: item.service_code,
+        note: getOrderItemNote(item),
+        order: index + 1,
+        locked: item.service_code === firstServiceCode,
+      }))
+    : [
         { icon: "🩸", name: "Xét nghiệm máu", code: "XN-MAU-001", note: "Nhịn ăn ≥ 4 giờ", order: 1, locked: true },
         { icon: "🫁", name: "Chụp X-quang ngực", code: "XQ-NGUC-002", note: "Không có điều kiện đặc biệt", order: 2, locked: false },
         { icon: "🔊", name: "Siêu âm bụng", code: "SA-BUNG-003", note: "Tiếp tục nhịn ăn", order: 3, locked: false },
-      ].map((svc, idx) => (
+      ];
+  return (
+    <div className="flex flex-col gap-3 px-4 pt-4 pb-8">
+      <div className="flex items-center justify-between">
+        <p style={{ fontSize: 12, letterSpacing: "0.06em" }} className="text-muted-foreground uppercase">{services.length} chỉ định mới</p>
+        <span className="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full" style={{ fontSize: 12 }}>Cần thực hiện</span>
+      </div>
+
+      {services.map((svc, idx) => (
         <div key={idx} className="bg-card rounded-xl border border-border p-4">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0 text-xl">
@@ -277,12 +335,20 @@ function OrdersTab({ onViewSchedule }: { onViewSchedule: () => void }) {
 }
 
 /* ── Results tab ── */
-function ResultsTab() {
-  const results = [
-    { icon: "🩸", name: "Xét nghiệm máu", code: "XN-MAU-001", hasResult: false, readyAt: null },
-    { icon: "🫁", name: "Chụp X-quang ngực", code: "XQ-NGUC-002", hasResult: true, readyAt: "11:08" },
-    { icon: "🔊", name: "Siêu âm bụng", code: "SA-BUNG-003", hasResult: false, readyAt: null },
-  ];
+function ResultsTab({ order }: { order?: ClinicalOrderDispatch }) {
+  const results = order
+    ? order.items.map((item) => ({
+        icon: orderItemIcons[item.room_service_type],
+        name: item.service_name,
+        code: item.service_code,
+        hasResult: false,
+        readyAt: null,
+      }))
+    : [
+        { icon: "🩸", name: "Xét nghiệm máu", code: "XN-MAU-001", hasResult: false, readyAt: null },
+        { icon: "🫁", name: "Chụp X-quang ngực", code: "XQ-NGUC-002", hasResult: true, readyAt: "11:08" },
+        { icon: "🔊", name: "Siêu âm bụng", code: "SA-BUNG-003", hasResult: false, readyAt: null },
+      ];
 
   const readyCount = results.filter((r) => r.hasResult).length;
 
@@ -364,37 +430,41 @@ function ResultsTab() {
 }
 
 /* ── Schedule tab ── */
-function ScheduleTab({ onStartJourney, onViewMap }: { onStartJourney: (strategy?: ScheduleStrategy) => void; onViewMap: () => void }) {
+function ScheduleTab({ order, onStartJourney, onViewMap }: { order?: ClinicalOrderDispatch; onStartJourney: (strategy?: ScheduleStrategy) => void; onViewMap: () => void }) {
   const [priority, setPriority] = useState<ScheduleStrategy>("balanced");
   const [priorityOpen, setPriorityOpen] = useState(false);
 
+  const recommendedOption = order?.route_proposal.options[0];
+  const estimatedDuration = recommendedOption
+    ? `${recommendedOption.duration_minutes_min}–${recommendedOption.duration_minutes_max} phút`
+    : undefined;
   const priorityOptions: { id: ScheduleStrategy; label: string; desc: string; icon: React.ReactNode; time: string }[] = [
     {
       id: "balanced",
       label: "Cân bằng",
       desc: "Tối ưu thời gian, quãng đường và sự ổn định",
       icon: <Activity size={18} />,
-      time: "~3.5 giờ",
+      time: estimatedDuration ?? "~3.5 giờ",
     },
     {
       id: "finish_early",
       label: "Ưu tiên hoàn tất sớm",
       desc: "Sắp xếp để lấy đủ kết quả và quay lại bác sĩ nhanh nhất",
       icon: <Timer size={18} />,
-      time: "~2.8 giờ",
+      time: estimatedDuration ?? "~2.8 giờ",
     },
     {
       id: "leave_fast",
       label: "Ra khỏi viện nhanh nhất",
       desc: "Rút ngắn tổng thời gian từ lúc bắt đầu đến khi ra về",
       icon: <ChevronRight size={18} />,
-      time: "~2.2 giờ",
+      time: estimatedDuration ?? "~2.2 giờ",
     },
   ];
 
   type SlotStatus = "done" | "active" | "pending" | "upcoming";
 
-  const slots: {
+  const defaultSlots: {
     time: string;
     endTime?: string;
     title: string;
@@ -456,6 +526,32 @@ function ScheduleTab({ onStartJourney, onViewMap }: { onStartJourney: (strategy?
       note: "BS. Trần Văn Hùng",
     },
   ];
+  const slots = order && recommendedOption
+    ? [
+        {
+          time: formatOrderMinute(order.created_at, -15),
+          endTime: formatOrderMinute(order.created_at, 0),
+          title: `Khám với ${order.doctor_name}`,
+          location: `Phòng ${order.doctor_room_code}`,
+          status: "done" as const,
+          duration: "15 phút",
+          note: `Bác sĩ đã ký ${order.items.length} chỉ định`,
+        },
+        ...recommendedOption.steps.map((step, index) => ({
+          time: formatOrderMinute(order.created_at, step.arrival_minutes),
+          endTime: formatOrderMinute(order.created_at, step.complete_minutes),
+          title: step.service_name,
+          location: `${step.room_name} — ${step.floor}`,
+          status: step.service_code === "doctor_return"
+            ? "upcoming" as const
+            : index === 0
+              ? "active" as const
+              : "pending" as const,
+          duration: `Chờ ${step.wait_minutes_min}–${step.wait_minutes_max} phút · thực hiện ${step.service_minutes} phút`,
+          note: step.lock_reason ?? undefined,
+        })),
+      ]
+    : defaultSlots;
 
   const statusConfig: Record<SlotStatus, { dot: string; label: string; labelColor: string; cardBorder: string; timeBg: string }> = {
     done:     { dot: "bg-emerald-500",  label: "Hoàn tất",    labelColor: "text-emerald-700 bg-emerald-50",  cardBorder: "border-border opacity-60",      timeBg: "bg-muted" },
@@ -465,14 +561,21 @@ function ScheduleTab({ onStartJourney, onViewMap }: { onStartJourney: (strategy?
   };
 
   const selectedPriority = priorityOptions.find((p) => p.id === priority)!;
+  const nextStep = recommendedOption?.steps.find((step) => step.service_code !== "doctor_return");
+  const displayDate = order
+    ? orderDateFormatter.format(new Date(order.created_at))
+    : "Thứ Sáu, 17/07/2026";
+  const encounterId = order?.encounter_id ?? "TM-2026-00847";
+  const completedSlotCount = slots.filter((slot) => slot.status === "done").length;
+  const progressPercent = Math.round((completedSlotCount / Math.max(slots.length, 1)) * 100);
 
   return (
     <div className="flex flex-col pb-8">
       {/* Date header */}
       <div className="px-4 pt-4 pb-3 flex items-center justify-between">
         <div>
-          <p style={{ fontSize: 16 }} className="text-foreground">Thứ Sáu, 17/07/2026</p>
-          <p style={{ fontSize: 13 }} className="text-muted-foreground">Lượt khám TM-2026-00847</p>
+          <p style={{ fontSize: 16 }} className="text-foreground">{displayDate}</p>
+          <p style={{ fontSize: 13 }} className="text-muted-foreground">Lượt khám {encounterId}</p>
         </div>
         <div className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-full">
           <Timer size={13} className="text-primary" />
@@ -546,10 +649,10 @@ function ScheduleTab({ onStartJourney, onViewMap }: { onStartJourney: (strategy?
       <div className="px-4 mb-4">
         <div className="flex items-center justify-between mb-1">
           <span style={{ fontSize: 12 }} className="text-muted-foreground">Tiến độ hôm nay</span>
-          <span style={{ fontSize: 12 }} className="text-primary">2/6 bước</span>
+          <span style={{ fontSize: 12 }} className="text-primary">{completedSlotCount}/{slots.length} bước</span>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">
-          <div className="h-2 bg-primary rounded-full transition-all" style={{ width: "33%" }} />
+          <div className="h-2 bg-primary rounded-full transition-all" style={{ width: `${progressPercent}%` }} />
         </div>
       </div>
 
@@ -652,11 +755,11 @@ function ScheduleTab({ onStartJourney, onViewMap }: { onStartJourney: (strategy?
               </div>
               <div className="flex-1">
                 <p style={{ fontSize: 13 }} className="text-muted-foreground">Đến tiếp theo</p>
-                <p style={{ fontSize: 16 }} className="text-foreground">Lấy máu 01</p>
-                <p style={{ fontSize: 13 }} className="text-muted-foreground">Tầng 1, khu A · Cách ~60 m</p>
+                <p style={{ fontSize: 16 }} className="text-foreground">{nextStep?.room_name ?? "Lấy máu 01"}</p>
+                <p style={{ fontSize: 13 }} className="text-muted-foreground">{nextStep ? `${nextStep.floor} · Di chuyển ${nextStep.travel_minutes} phút` : "Tầng 1, khu A · Cách ~60 m"}</p>
               </div>
               <div className="bg-secondary text-primary px-2.5 py-1 rounded-full flex-shrink-0" style={{ fontSize: 12 }}>
-                Nên đến trước 10:20
+                {nextStep && order ? `Dự kiến ${formatOrderMinute(order.created_at, nextStep.arrival_minutes)}` : "Nên đến trước 10:20"}
               </div>
             </div>
           </div>
@@ -664,9 +767,9 @@ function ScheduleTab({ onStartJourney, onViewMap }: { onStartJourney: (strategy?
           {/* Các bước đi */}
           <div className="px-4 py-3 flex flex-col gap-2.5">
             {[
-              "Từ vị trí hiện tại, đi thẳng đến cuối hành lang chính.",
-              "Rẽ phải tại biển \"Khu Xét nghiệm\", đi thêm khoảng 30 m.",
-              "Lấy máu 01 ở bên trái, nhận số thứ tự tại quầy.",
+              `Di chuyển đến ${nextStep?.floor ?? "tầng được hướng dẫn"}.`,
+              `Đi theo biển chỉ dẫn đến ${nextStep?.room_name ?? "phòng thực hiện dịch vụ"}.`,
+              `Xác nhận mã phòng ${nextStep?.room_code ?? "trên phiếu chỉ định"} tại quầy tiếp nhận.`,
             ].map((step, i) => (
               <div key={i} className="flex gap-2.5 items-start">
                 <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mt-0.5">
