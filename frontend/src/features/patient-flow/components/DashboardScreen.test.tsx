@@ -181,7 +181,7 @@ describe('DashboardScreen', () => {
     expect(within(nextServiceCard!).getByText('Đang thực hiện')).toBeInTheDocument()
 
     fireEvent.click(screen.getByText('Đang ưu tiên').closest('button')!)
-    fireEvent.click(screen.getByRole('button', { name: /Ưu tiên làm dịch vụ sớm/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Ưu tiên thời gian vào khám/ }))
 
     expect(onRegenerateJourney).toHaveBeenCalledWith('finish_early')
   })

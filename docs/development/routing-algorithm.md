@@ -47,10 +47,10 @@ Ví dụ:
 | Giá trị | Ý nghĩa |
 |---|---|
 | `balanced` | Cân bằng thời gian, hàng chờ và quãng đường |
-| `finish_early` | Ưu tiên làm xong xét nghiệm và có kết quả sớm |
-| `leave_fast` | Ưu tiên hoàn tất toàn bộ lượt khám sớm |
+| `finish_early` | Ưu tiên thời gian được tiếp nhận và hoàn thành các dịch vụ sớm |
+| `leave_fast` | Ưu tiên để các kết quả bắt buộc đến tay bác sĩ sớm |
 
-### Tiêu chí lộ trình
+### Tiêu chí lộ trình nội bộ
 
 | Giá trị | Ý nghĩa |
 |---|---|
@@ -60,7 +60,7 @@ Ví dụ:
 | `less_crowd` | Ưu tiên tổng thời gian hàng chờ thấp |
 | `accessible` | Ưu tiên hành trình hỗ trợ di chuyển |
 
-`schedule_strategy` và `priority` là hai trường khác nhau. Trường thứ nhất thể hiện mục tiêu của toàn ngày; trường thứ hai điều chỉnh cách chọn phòng và lộ trình.
+Giao diện bệnh nhân chỉ cho chọn `schedule_strategy`. Bản demo gửi `priority=system` để giữ tiêu chí chọn phòng ở chế độ trung lập; các giá trị còn lại được giữ trong hợp đồng backend để phục vụ kiểm thử và mở rộng sau này.
 
 ## 3. Danh mục dịch vụ demo
 

@@ -119,7 +119,7 @@ const initialOrder: DispatchClinicalOrderPayload = {
   doctor_name: '',
   doctor_room_code: '',
   clinical_service_codes: [],
-  priority: 'fastest',
+  priority: 'system',
   schedule_strategy: 'balanced',
 }
 
@@ -737,8 +737,7 @@ function OrderPanel({
           <section className="sim-card">
             <div className="sim-card__heading"><div><small>BƯỚC 3</small><h2>Cách hệ thống xếp lộ trình</h2></div><Activity size={22} /></div>
             <div className="sim-form-grid">
-              <label><span>Kiểu xếp lịch trình</span><select value={payload.schedule_strategy} onChange={(event) => updateField('schedule_strategy', event.target.value as DispatchClinicalOrderPayload['schedule_strategy'])}><option value="balanced">Cân bằng</option><option value="finish_early">Ưu tiên làm dịch vụ sớm</option><option value="leave_fast">Ưu tiên gặp bác sĩ chẩn đoán</option></select></label>
-              <label><span>Tiêu chí chọn phòng</span><select value={payload.priority} onChange={(event) => updateField('priority', event.target.value as DispatchClinicalOrderPayload['priority'])}><option value="fastest">Nhanh nhất</option><option value="less_walk">Ít đi bộ</option><option value="less_crowd">Ít đông</option><option value="accessible">Hỗ trợ di chuyển</option></select></label>
+              <label><span>Kiểu xếp lịch trình</span><select value={payload.schedule_strategy} onChange={(event) => updateField('schedule_strategy', event.target.value as DispatchClinicalOrderPayload['schedule_strategy'])}><option value="balanced">Cân bằng</option><option value="finish_early">Ưu tiên thời gian vào khám</option><option value="leave_fast">Ưu tiên kết quả đến tay bác sĩ</option></select></label>
             </div>
           </section>
           {formError && <p className="sim-message is-error" role="alert">{formError}</p>}

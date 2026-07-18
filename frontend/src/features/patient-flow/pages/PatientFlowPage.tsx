@@ -6,7 +6,7 @@ import { DashboardScreen } from "../components/DashboardScreen";
 import { NewPrescriptionScreen } from "../components/NewPrescriptionScreen";
 import { PriorityScreen } from "../components/PriorityScreen";
 import { RouteChoiceScreen } from "../components/RouteChoiceScreen";
-import type { Priority, Route, RouteReservation, ScheduleStrategy } from "../model/patient-flow.types";
+import type { Route, RouteReservation, ScheduleStrategy } from "../model/patient-flow.types";
 import { RouteDetailScreen } from "../components/RouteDetailScreen";
 import { ConfirmScreen } from "../components/ConfirmScreen";
 import { TodayJourneyScreen } from "../components/TodayJourneyScreen";
@@ -164,7 +164,6 @@ export default function PatientFlowPage() {
     [patientOrder],
   );
   const [screen, setScreen] = useState<Screen>(() => patientCode ? "newPrescription" : "dashboard");
-  const [priority, setPriority] = useState<Priority>("fastest");
   const [scheduleStrategy, setScheduleStrategy] = useState<ScheduleStrategy>("balanced");
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
   const [viewDetailRoute, setViewDetailRoute] = useState<Route | null>(null);
@@ -408,35 +407,34 @@ export default function PatientFlowPage() {
         {displayedScreen === "choosePriority" && (
           <PriorityScreen
             onBack={() => nav("newPrescription")}
-            onContinue={(p) => { setPriority(p); nav("chooseRoute"); }}
-            onUpdateAccessibility={() => {
-              setPrevScreen("choosePriority");
-              nav("support");
+            scheduleStrategy={scheduleStrategy}
+            onContinue={(strategy) => {
+              setScheduleStrategy(strategy);
+              nav("chooseRoute");
             }}
           />
         )}
 
         {displayedScreen === "chooseRoute" && (
           <RouteChoiceScreen
-            priority={priority}
+            priority="system"
             scheduleStrategy={scheduleStrategy}
             dispatchedRoutes={dispatchedRoutes ?? []}
-            recalculation={
-              isRegeneratingJourney && patientOrder
-                ? {
-                    patientCode: patientOrder.patient_code,
-                    completedServiceCodes: (
-                      navigationRoute?.stepDetails
-                        .slice(0, displayedJourneyStep)
-                        .map((step) => step.serviceCode)
-                        .filter((serviceCode) => serviceCode !== "doctor_return")
-                        ?? []
-                    ),
-                    startRoomCode:
-                      previousStepDetail?.roomCode ?? patientOrder.doctor_room_code,
-                  }
-                : undefined
-            }
+            recalculation={{
+              patientCode: patientOrder.patient_code,
+              completedServiceCodes: isRegeneratingJourney
+                ? (
+                    navigationRoute?.stepDetails
+                      .slice(0, displayedJourneyStep)
+                      .map((step) => step.serviceCode)
+                      .filter((serviceCode) => serviceCode !== "doctor_return")
+                    ?? []
+                  )
+                : [],
+              startRoomCode: isRegeneratingJourney
+                ? previousStepDetail?.roomCode ?? patientOrder.doctor_room_code
+                : patientOrder.doctor_room_code,
+            }}
             doctorName={patientOrder.doctor_name}
             onBack={() => {
               if (isRegeneratingJourney) {

@@ -1,54 +1,42 @@
-import { ChevronRight, Check, Zap, Footprints, Users, Accessibility, Sliders } from "lucide-react";
+import { ChevronRight, Check, Zap, Sliders } from "lucide-react";
 import { useState } from "react";
 import { AppHeader } from "./AppHeader";
-import type { Priority } from "../model/patient-flow.types";
+import type { ScheduleStrategy } from "../model/patient-flow.types";
 
 interface PriorityScreenProps {
   onBack: () => void;
-  onContinue: (priority: Priority) => void;
-  onUpdateAccessibility: () => void;
+  scheduleStrategy: ScheduleStrategy;
+  onContinue: (strategy: ScheduleStrategy) => void;
 }
 
 const options: {
-  id: Priority;
+  id: ScheduleStrategy;
   label: string;
   description: string;
   icon: React.ReactNode;
 }[] = [
   {
-    id: "system",
-    label: "Để hệ thống đề xuất",
-    description: "Cân bằng thời gian, di chuyển và độ ổn định",
+    id: "balanced",
+    label: "Cân bằng",
+    description: "Cân bằng thời gian chờ, di chuyển và thời điểm trả kết quả",
     icon: <Sliders size={22} />,
   },
   {
-    id: "fastest",
-    label: "Hoàn tất sớm",
-    description: "Ưu tiên tổng thời gian từ bây giờ đến khi quay lại bác sĩ",
+    id: "finish_early",
+    label: "Ưu tiên thời gian vào khám",
+    description: "Ưu tiên được tiếp nhận và hoàn thành các dịch vụ sớm; có thể chờ bác sĩ lâu hơn",
     icon: <Zap size={22} />,
   },
   {
-    id: "lessWalk",
-    label: "Ít đi bộ",
-    description: "Ưu tiên cùng tầng, gần thang máy và quãng đường ngắn",
-    icon: <Footprints size={22} />,
-  },
-  {
-    id: "lessCrowd",
-    label: "Khu chờ ít đông",
-    description: "Ưu tiên nơi có số người chờ dự kiến thấp hơn",
-    icon: <Users size={22} />,
-  },
-  {
-    id: "accessible",
-    label: "Hỗ trợ di chuyển",
-    description: "Chỉ dùng tuyến có lối phù hợp xe lăn hoặc hỗ trợ đã đăng ký",
-    icon: <Accessibility size={22} />,
+    id: "leave_fast",
+    label: "Ưu tiên kết quả đến tay bác sĩ",
+    description: "Sắp xếp để các kết quả bắt buộc đến tay bác sĩ trong thời gian sớm nhất",
+    icon: <Check size={22} />,
   },
 ];
 
-export function PriorityScreen({ onBack, onContinue, onUpdateAccessibility }: PriorityScreenProps) {
-  const [selected, setSelected] = useState<Priority>("fastest");
+export function PriorityScreen({ onBack, scheduleStrategy, onContinue }: PriorityScreenProps) {
+  const [selected, setSelected] = useState<ScheduleStrategy>(scheduleStrategy);
 
   return (
     <div className="flex flex-col min-h-full bg-background">
@@ -62,7 +50,7 @@ export function PriorityScreen({ onBack, onContinue, onUpdateAccessibility }: Pr
       />
 
       <div className="flex flex-col gap-3 px-4 pt-4 pb-6">
-        <p style={{ fontSize: 15 }} className="text-foreground">Điều gì quan trọng nhất với bạn?</p>
+        <p style={{ fontSize: 15 }} className="text-foreground">Bạn muốn hệ thống sắp lịch trình theo cách nào?</p>
 
         {options.map((opt) => {
           const isSelected = selected === opt.id;
@@ -70,6 +58,7 @@ export function PriorityScreen({ onBack, onContinue, onUpdateAccessibility }: Pr
             <button
               key={opt.id}
               onClick={() => setSelected(opt.id)}
+              aria-pressed={isSelected}
               className={`w-full text-left rounded-xl border-2 p-4 flex items-start gap-4 transition-all active:scale-[0.99] ${
                 isSelected ? "border-primary bg-secondary" : "border-border bg-card"
               }`}
@@ -107,13 +96,6 @@ export function PriorityScreen({ onBack, onContinue, onUpdateAccessibility }: Pr
           <ChevronRight size={20} />
         </button>
 
-        <button
-          onClick={onUpdateAccessibility}
-          className="w-full py-3 rounded-xl border border-border bg-card text-foreground text-center"
-          style={{ fontSize: 15, minHeight: 48 }}
-        >
-          Cập nhật nhu cầu hỗ trợ
-        </button>
       </div>
     </div>
   );

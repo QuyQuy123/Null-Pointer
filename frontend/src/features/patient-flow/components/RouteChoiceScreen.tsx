@@ -8,12 +8,10 @@ import type { Priority, Route, RouteId, ScheduleStrategy } from "../model/patien
 
 export type { Route } from "../model/patient-flow.types";
 
-const priorityLabels: Record<Priority, string> = {
-  system: "Cân bằng",
-  fastest: "Hoàn tất sớm",
-  lessWalk: "Ít đi bộ",
-  lessCrowd: "Khu chờ ít đông",
-  accessible: "Hỗ trợ di chuyển",
+const scheduleStrategyLabels: Record<ScheduleStrategy, string> = {
+  balanced: "Cân bằng",
+  finish_early: "Ưu tiên thời gian vào khám",
+  leave_fast: "Ưu tiên kết quả đến tay bác sĩ",
 };
 
 interface RouteChoiceScreenProps {
@@ -89,7 +87,7 @@ export function RouteChoiceScreen({
     <div className="flex flex-col min-h-full bg-background">
       <AppHeader
         title="Chọn lộ trình"
-        subtitle={`Ưu tiên: ${priorityLabels[priority]}`}
+        subtitle={`Chế độ: ${scheduleStrategyLabels[scheduleStrategy]}`}
         progress={{ current: 3, total: 4 }}
         onBack={onBack}
       />
