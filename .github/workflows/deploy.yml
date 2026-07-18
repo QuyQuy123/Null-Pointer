@@ -71,8 +71,8 @@ jobs:
             AI_SERVICE_URL=${{ steps.deploy-ai.outputs.url }}
             APP_ENV=production
             DATABASE_URL=${{ secrets.DATABASE_URL }}
-          flags: '--allow-unauthenticated' # Xóa --port=8000, để Cloud Run tự quản lý cổng
-
+            PORT=8000
+          flags: '--allow-unauthenticated --port=8000' # Ép cả hạ tầng lẫn container chạy chung cổng 8000
       # 5. BUILD & DEPLOY DỊCH VỤ FRONTEND
       # Cần URL của backend vừa deploy để build static assets cho React
       - name: Build and Push Frontend Image
