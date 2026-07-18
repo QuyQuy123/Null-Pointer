@@ -1,0 +1,92 @@
+name: Deploy to Google Cloud Run
+
+on:
+  push:
+    branches:
+      - main # Chạy tự động khi push code lên nhánh main
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }} # ID dự án GCP của bạn
+  GAR_LOCATION: ${{ secrets.GCP_GAR_LOCATION || 'asia-east1' }} # Vùng của Artifact Registry (ví dụ: asia-east1)
+  REGION: ${{ secrets.GCP_REGION || 'asia-east1' }} # Vùng chạy Cloud Run
+  REPOSITORY: nhip-vien-repo # Tên repository trong Artifact Registry của bạn
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write' # Bắt buộc để xác thực với GCP qua Workload Identity Federation
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. Xác thực với Google Cloud
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_WIF_SERVICE_ACCOUNT }}
+
+      # 2. Đăng nhập vào Artifact Registry
+      - name: Docker Auth
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.GAR_LOCATION }}-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      # 3. BUILD & DEPLOY DỊCH VỤ AI
+      - name: Build and Push AI Image
+        run: |
+          docker build -t ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/ai-service:${{ github.sha }} ./ai
+          docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/ai-service:${{ github.sha }}
+
+      - name: Deploy AI to Cloud Run
+        id: deploy-ai
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: nhip-vien-ai
+          image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/ai-service:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: '--allow-unauthenticated --port=8010'
+
+      # 4. BUILD & DEPLOY DỊCH VỤ BACKEND
+      - name: Build and Push Backend Image
+        run: |
+          docker build -t ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/backend-service:${{ github.sha }} ./backend
+          docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/backend-service:${{ github.sha }}
+
+      - name: Deploy Backend to Cloud Run
+        id: deploy-backend
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: nhip-vien-backend
+          image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/backend-service:${{ github.sha }}
+          region: ${{ env.REGION }}
+          env_vars: |
+            AI_SERVICE_URL=${{ steps.deploy-ai.outputs.url }}
+            APP_ENV=production
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+          flags: '--allow-unauthenticated --port=8000'
+
+      # 5. BUILD & DEPLOY DỊCH VỤ FRONTEND
+      # Cần URL của backend vừa deploy để build static assets cho React
+      - name: Build and Push Frontend Image
+        run: |
+          docker build \
+            --build-arg VITE_API_URL=${{ steps.deploy-backend.outputs.url }}/api/v1 \
+            -t ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/frontend-service:${{ github.sha }} ./frontend
+          docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/frontend-service:${{ github.sha }}
+
+      - name: Deploy Frontend to Cloud Run
+        id: deploy-frontend
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: nhip-vien-frontend
+          image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/frontend-service:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: '--allow-unauthenticated --port=80'
