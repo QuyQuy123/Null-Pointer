@@ -1,13 +1,14 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, HTTPException, status
 
+from app.modules.routing.exceptions import NoFeasibleRouteError
+from app.modules.routing.runtime import route_proposal_service
 from app.modules.routing.schemas import (
     CreateRouteProposalRequest,
     RouteProposalResponse,
 )
-from app.modules.routing.service import RouteProposalService
 
 router = APIRouter(prefix="/encounters", tags=["routing"])
-service = RouteProposalService()
+service = route_proposal_service
 
 
 @router.post(
@@ -20,4 +21,10 @@ async def create_route_proposal(
     encounter_id: str,
     request: CreateRouteProposalRequest,
 ) -> RouteProposalResponse:
-    return service.create_demo_proposal(encounter_id, request)
+    try:
+        return service.create_proposal(encounter_id, request)
+    except NoFeasibleRouteError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error

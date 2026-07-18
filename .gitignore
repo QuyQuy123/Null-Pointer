@@ -12,6 +12,9 @@ node_modules/
 dist/
 coverage/
 .vite/
+playwright-report/
+test-results/
+blob-report/
 
 # Python
 __pycache__/

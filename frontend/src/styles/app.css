@@ -117,6 +117,236 @@
   background: white;
 }
 
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.simulation-page {
+  display: grid;
+  gap: 24px;
+}
+
+.simulation-page section > h3,
+.simulation-page__header h2,
+.simulation-section-heading h3,
+.simulation-room-card h4,
+.simulation-room-card p,
+.simulation-patient-list p {
+  margin: 0;
+}
+
+.simulation-page__header,
+.simulation-room-card__heading,
+.simulation-patient-list article > div {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.simulation-page__header h2 {
+  margin-top: 6px;
+  font-size: 22px;
+}
+
+.simulation-notice,
+.simulation-room-card__reason {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
+  color: #854d0e;
+  background: #fffbeb;
+  line-height: 1.5;
+}
+
+.simulation-clock,
+.simulation-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.simulation-clock > div,
+.simulation-summary-grid article {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: white;
+}
+
+.simulation-clock span,
+.simulation-summary-grid span,
+.simulation-room-card__heading span,
+.simulation-room-card__heading p,
+.simulation-patient-list span,
+.simulation-patient-list small {
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.simulation-clock strong,
+.simulation-summary-grid strong {
+  color: var(--color-primary);
+  font-size: 20px;
+}
+
+.simulation-controls,
+.simulation-room-list,
+.simulation-patient-list {
+  display: grid;
+  gap: 12px;
+}
+
+.simulation-controls {
+  grid-template-columns: 1fr 1fr;
+}
+
+.simulation-controls .button:last-child {
+  grid-column: 1 / -1;
+}
+
+.simulation-page section > h3 {
+  margin-bottom: 12px;
+  font-size: 18px;
+}
+
+.simulation-section-heading {
+  margin-bottom: 12px;
+}
+
+.simulation-section-heading p {
+  margin: 4px 0 0;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.simulation-room-card,
+.simulation-patient-list article,
+.simulation-panel {
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: white;
+}
+
+.simulation-room-card__heading h4 {
+  margin-top: 4px;
+  font-size: 16px;
+}
+
+.simulation-room-card__heading p {
+  margin-top: 4px;
+}
+
+.simulation-status {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.simulation-status--available {
+  color: #047857;
+  background: #d1fae5;
+}
+
+.simulation-status--serving {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.simulation-status--overloaded {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.simulation-status--paused {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.simulation-status-description,
+.simulation-queue-codes {
+  margin-top: 12px !important;
+  color: var(--color-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.simulation-room-card__reason {
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.simulation-room-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 14px 0 0;
+}
+
+.simulation-room-metrics div {
+  padding: 10px;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.simulation-room-metrics dt {
+  color: var(--color-muted);
+  font-size: 11px;
+}
+
+.simulation-room-metrics dd {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.simulation-room-card__action {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.simulation-patient-list article {
+  display: grid;
+  gap: 8px;
+}
+
+.simulation-patient-list p {
+  overflow-wrap: anywhere;
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.simulation-event-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.simulation-event-list li {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.simulation-event-list time {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
 .bottom-navigation {
   position: fixed;
   z-index: 20;

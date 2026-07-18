@@ -13,6 +13,9 @@
 - [Kiến trúc hệ thống](architecture/system-architecture.md).
 - [Cấu trúc dự án bắt buộc](architecture/project-structure.md).
 - [Hướng dẫn chạy dự án](development/getting-started.md).
+- [Hướng dẫn hệ thống mô phỏng](development/demo-simulation.md).
+- [Thuật toán phân luồng bệnh nhân](development/routing-algorithm.md).
+- [Tích hợp giao diện bệnh nhân với backend](development/patient-flow-integration.md).
 - [Quy trình GitNexus](development/gitnexus-workflow.md).
 
 ## Thứ tự đọc đề xuất

@@ -34,7 +34,8 @@ frontend/
 │   │   ├── active-journey/
 │   │   ├── hospital-map/
 │   │   ├── notifications/
-│   │   └── support/
+│   │   ├── support/
+│   │   └── demo-simulation/
 │   ├── entities/
 │   │   ├── patient/
 │   │   ├── care-route/
@@ -85,7 +86,8 @@ backend/
 │   │   ├── journeys/
 │   │   ├── notifications/
 │   │   ├── support/
-│   │   └── audit/
+│   │   ├── audit/
+│   │   └── simulation/
 │   ├── integrations/
 │   │   ├── ai/
 │   │   ├── his/

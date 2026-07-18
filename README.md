@@ -25,8 +25,10 @@ Null-Pointer/
 4. [Kiến trúc hệ thống](docs/architecture/system-architecture.md).
 5. [Cấu trúc dự án bắt buộc](docs/architecture/project-structure.md).
 6. [Hướng dẫn chạy dự án](docs/development/getting-started.md).
-7. [Quy trình GitNexus](docs/development/gitnexus-workflow.md).
-8. [Quy tắc dành cho AI và công cụ tự động](AGENTS.md).
+7. [Hướng dẫn hệ thống mô phỏng](docs/development/demo-simulation.md).
+8. [Thuật toán phân luồng bệnh nhân](docs/development/routing-algorithm.md).
+9. [Quy trình GitNexus](docs/development/gitnexus-workflow.md).
+10. [Quy tắc dành cho AI và công cụ tự động](AGENTS.md).
 
 ## Khởi chạy nhanh
 
@@ -64,6 +66,39 @@ Hoặc chạy cả ba phần bằng Docker Compose — công cụ khởi chạy 
 
 ```powershell
 docker compose up --build
+```
+
+## Kiểm thử toàn trình duyệt với Playwright
+
+**Playwright - công cụ tự động điều khiển trình duyệt để kiểm thử giao diện** được cài tại thư mục gốc. Cấu hình dùng chung kiểm tra ứng dụng sản xuất trong `frontend/` trên Chromium, Firefox, WebKit và hai kích thước màn hình di động.
+
+Lần đầu sử dụng:
+
+```powershell
+npm install
+npm run playwright:install
+```
+
+Chạy toàn bộ bài kiểm thử:
+
+```powershell
+npm run test:e2e
+```
+
+Các lệnh hỗ trợ:
+
+```powershell
+npm run test:e2e:chromium
+npm run test:e2e:headed
+npm run test:e2e:ui
+npm run test:e2e:report
+```
+
+Playwright tự khởi động `frontend/` tại `http://127.0.0.1:5173`. Để kiểm thử một địa chỉ đã chạy sẵn, đặt biến môi trường trước khi chạy:
+
+```powershell
+$env:PLAYWRIGHT_BASE_URL="https://dia-chi-can-kiem-thu.example"
+npm run test:e2e
 ```
 
 ## Quy tắc quan trọng

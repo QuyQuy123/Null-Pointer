@@ -16,6 +16,7 @@ services:
       - "8000:8000"
     environment:
       APP_ENV: development
+      DEMO_SIMULATION_ENABLED: "true"
       AI_SERVICE_URL: http://ai:8010
       CORS_ORIGINS: '["http://localhost:5173"]'
     depends_on:
