@@ -10,7 +10,6 @@ interface TodayJourneyScreenProps {
   route: Route;
   currentStep: JourneyStep;
   onShowDirections: () => void;
-  onNeedSupport: () => void;
   onStepDone: () => void;
 }
 
@@ -18,7 +17,6 @@ export function TodayJourneyScreen({
   route,
   currentStep,
   onShowDirections,
-  onNeedSupport,
   onStepDone,
 }: TodayJourneyScreenProps) {
   const [showCompletionConfirmation, setShowCompletionConfirmation] = useState(false);
@@ -30,7 +28,7 @@ export function TodayJourneyScreen({
   const completedSteps = currentStep;
 
   return (
-    <div className="flex flex-col min-h-full bg-background pb-24">
+    <div className="flex flex-col min-h-full bg-background pb-8">
       <AppHeader
         variant="primary"
         title="Hành trình hôm nay"
@@ -147,14 +145,6 @@ export function TodayJourneyScreen({
           Tôi đã khám xong
         </button>
 
-        {/* Support */}
-        <button
-          onClick={onNeedSupport}
-          className="w-full py-3.5 rounded-xl border border-border bg-card text-foreground flex items-center justify-center gap-2"
-          style={{ fontSize: 15, minHeight: 52 }}
-        >
-          Tôi cần hỗ trợ
-        </button>
       </div>
 
       {showCompletionConfirmation && (

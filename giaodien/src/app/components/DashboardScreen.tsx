@@ -4,7 +4,6 @@ import {
   Map,
   FlaskConical,
   LayoutList,
-  HeadphonesIcon,
   ChevronRight,
   Bell,
   User,
@@ -14,7 +13,6 @@ import {
   CheckCircle2,
   Activity,
   FileText,
-  Phone,
   Timer,
   Loader2,
 } from "lucide-react";
@@ -22,19 +20,19 @@ import {
 interface DashboardScreenProps {
   onStartJourney: () => void;
   onViewMap: () => void;
+  onOpenNotifications: () => void;
 }
 
-type MenuTab = "today" | "orders" | "results" | "schedule" | "support";
+type MenuTab = "today" | "orders" | "results" | "schedule";
 
 const menuTabs: { id: MenuTab; label: string; icon: React.ReactNode }[] = [
   { id: "today", label: "Hôm nay", icon: <Activity size={18} /> },
   { id: "orders", label: "Chỉ định", icon: <ClipboardList size={18} /> },
   { id: "results", label: "Kết quả", icon: <FlaskConical size={18} /> },
   { id: "schedule", label: "Lịch trình", icon: <LayoutList size={18} /> },
-  { id: "support", label: "Hỗ trợ", icon: <HeadphonesIcon size={18} /> },
 ];
 
-export function DashboardScreen({ onStartJourney, onViewMap }: DashboardScreenProps) {
+export function DashboardScreen({ onStartJourney, onViewMap, onOpenNotifications }: DashboardScreenProps) {
   const [activeTab, setActiveTab] = useState<MenuTab>("today");
 
   return (
@@ -50,7 +48,7 @@ export function DashboardScreen({ onStartJourney, onViewMap }: DashboardScreenPr
             <span style={{ fontSize: 15 }} className="text-white">Bệnh viện Đa khoa TW</span>
           </div>
           <div className="flex items-center gap-2">
-            <button className="relative w-10 h-10 flex items-center justify-center rounded-full bg-white/15 active:bg-white/25 transition-colors" aria-label="Thông báo">
+            <button onClick={onOpenNotifications} className="relative w-10 h-10 flex items-center justify-center rounded-full bg-white/15 active:bg-white/25 transition-colors" aria-label="Thông báo">
               <Bell size={18} className="text-white" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-400" />
             </button>
@@ -121,7 +119,6 @@ export function DashboardScreen({ onStartJourney, onViewMap }: DashboardScreenPr
         {activeTab === "orders" && <OrdersTab onStartJourney={onStartJourney} onViewSchedule={() => setActiveTab("schedule")} />}
         {activeTab === "results" && <ResultsTab />}
         {activeTab === "schedule" && <ScheduleTab onStartJourney={onStartJourney} onViewMap={onViewMap} />}
-        {activeTab === "support" && <SupportTab />}
       </div>
     </div>
   );
@@ -678,68 +675,18 @@ function ScheduleTab({ onStartJourney, onViewMap }: { onStartJourney: () => void
           </div>
 
           {/* Nút hành động */}
-          <div className="px-4 pb-4 flex gap-2">
+          <div className="px-4 pb-4">
             <button
               onClick={onViewMap}
-              className="flex-1 py-3 bg-primary text-primary-foreground rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+              className="w-full py-3 bg-primary text-primary-foreground rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
               style={{ fontSize: 14, minHeight: 48 }}
             >
               <Map size={16} />
               Xem bản đồ đầy đủ
             </button>
-            <button
-              className="px-4 py-3 border border-border bg-card text-foreground rounded-xl"
-              style={{ fontSize: 14, minHeight: 48 }}
-            >
-              Hỗ trợ xe lăn
-            </button>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-/* ── Support tab ── */
-function SupportTab() {
-  return (
-    <div className="flex flex-col gap-3 px-4 pt-4 pb-8">
-      <div className="bg-primary rounded-2xl p-5 text-center">
-        <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3">
-          <HeadphonesIcon size={28} className="text-white" />
-        </div>
-        <p style={{ fontSize: 18 }} className="text-white mb-1">Cần hỗ trợ?</p>
-        <p style={{ fontSize: 13, opacity: 0.85 }} className="text-white mb-4">Nhân viên luôn sẵn sàng giúp bạn</p>
-        <button
-          className="w-full py-3.5 bg-white text-primary rounded-xl flex items-center justify-center gap-2"
-          style={{ fontSize: 16, minHeight: 50 }}
-        >
-          <Phone size={18} />
-          Gọi nhân viên hỗ trợ
-        </button>
-      </div>
-
-      {[
-        { icon: <Map size={20} className="text-primary" />, title: "Sơ đồ bệnh viện", sub: "Tìm đường đến các khoa, phòng" },
-        { icon: <FileText size={20} className="text-primary" />, title: "Hướng dẫn quy trình", sub: "Các bước khám từ đầu đến cuối" },
-        { icon: <Phone size={20} className="text-primary" />, title: "Đường dây hỗ trợ", sub: "1900 1234 — Miễn phí, 24/7" },
-        { icon: <HeadphonesIcon size={20} className="text-primary" />, title: "Hỗ trợ người thân thao tác thay", sub: "Cấp quyền cho người thân hỗ trợ" },
-      ].map((item, idx) => (
-        <button
-          key={idx}
-          className="bg-card rounded-xl border border-border p-4 flex items-center gap-3 text-left active:bg-muted transition-colors w-full"
-          style={{ minHeight: 64 }}
-        >
-          <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
-            {item.icon}
-          </div>
-          <div className="flex-1">
-            <p style={{ fontSize: 15 }} className="text-foreground">{item.title}</p>
-            <p style={{ fontSize: 13 }} className="text-muted-foreground">{item.sub}</p>
-          </div>
-          <ChevronRight size={16} className="text-muted-foreground" />
-        </button>
-      ))}
     </div>
   );
 }

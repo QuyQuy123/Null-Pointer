@@ -8,7 +8,6 @@ interface WaitingScreenProps {
   route: Route;
   currentStep: JourneyStep;
   onNext: () => void;
-  onNeedSupport: () => void;
 }
 
 const stepNames = ["Lấy máu", "Chụp X-quang", "Siêu âm bụng"];
@@ -19,7 +18,7 @@ const stepLocations = [
 ];
 const stepQueueSizes = [3, 7, 2];
 
-export function WaitingScreen({ route, currentStep, onNext, onNeedSupport }: WaitingScreenProps) {
+export function WaitingScreen({ route, currentStep, onNext }: WaitingScreenProps) {
   const [elapsed, setElapsed] = useState(0);
   const [canLeave, setCanLeave] = useState(false);
 
@@ -139,13 +138,6 @@ export function WaitingScreen({ route, currentStep, onNext, onNeedSupport }: Wai
         >
           Xem bước tiếp theo
           <ChevronRight size={18} />
-        </button>
-        <button
-          onClick={onNeedSupport}
-          className="w-full py-3 rounded-xl border border-border bg-card text-foreground text-center"
-          style={{ fontSize: 15, minHeight: 48 }}
-        >
-          Tôi cần hỗ trợ
         </button>
       </div>
     </div>

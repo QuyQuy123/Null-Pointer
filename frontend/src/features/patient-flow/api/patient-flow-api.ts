@@ -22,13 +22,6 @@ const reservationSchema = z.object({
   journey_status: z.enum(['not_started', 'active', 'completed']),
 })
 
-const supportResponseSchema = z.object({
-  id: z.string(),
-  status: z.string(),
-  estimated_response_minutes_min: z.number(),
-  estimated_response_minutes_max: z.number(),
-})
-
 const labelConfig = {
   recommended: {
     id: 'recommended',
@@ -189,25 +182,4 @@ export async function updateJourneyProgress(
     },
   )
   return mapReservation(response)
-}
-
-export type SupportType =
-  | 'staff'
-  | 'wheelchair'
-  | 'directions'
-  | 'visual_assistance'
-
-export async function createSupportRequest(
-  type: SupportType,
-  encounterId: string,
-  location: string,
-) {
-  return apiRequest('/support-requests', supportResponseSchema, {
-    method: 'POST',
-    body: JSON.stringify({
-      encounter_id: encounterId,
-      support_type: type,
-      location,
-    }),
-  })
 }

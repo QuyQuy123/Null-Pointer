@@ -92,6 +92,8 @@ const order: ClinicalOrderDispatch = {
 
 describe('DashboardScreen', () => {
   it('hiển thị hoạt động thật và không hiển thị timeline giả cũ', () => {
+    const onOpenNotifications = vi.fn()
+
     render(
       <DashboardScreen
         order={order}
@@ -117,7 +119,7 @@ describe('DashboardScreen', () => {
         onRegenerateJourney={() => undefined}
         onCompleteCurrentService={() => undefined}
         onViewMap={() => undefined}
-        onOpenSupport={() => undefined}
+        onOpenNotifications={onOpenNotifications}
       />,
     )
 
@@ -125,6 +127,9 @@ describe('DashboardScreen', () => {
     expect(screen.getByText('Đã nhận 2 chỉ định mới')).toBeInTheDocument()
     expect(screen.queryByText('Đăng ký khám')).not.toBeInTheDocument()
     expect(screen.queryByText('Đo huyết áp & sinh hiệu')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Thông báo và hoạt động' }))
+    expect(onOpenNotifications).toHaveBeenCalledOnce()
   })
 
   it('đổi ưu tiên mới tạo lại lộ trình và nút hoàn thành chuyển bước sau xác nhận', () => {
@@ -144,7 +149,7 @@ describe('DashboardScreen', () => {
         onRegenerateJourney={onRegenerateJourney}
         onCompleteCurrentService={onCompleteCurrentService}
         onViewMap={() => undefined}
-        onOpenSupport={() => undefined}
+        onOpenNotifications={() => undefined}
       />,
     )
 
@@ -172,7 +177,7 @@ describe('DashboardScreen', () => {
         onRegenerateJourney={onRegenerateJourney}
         onCompleteCurrentService={onCompleteCurrentService}
         onViewMap={() => undefined}
-        onOpenSupport={() => undefined}
+        onOpenNotifications={() => undefined}
       />,
     )
 

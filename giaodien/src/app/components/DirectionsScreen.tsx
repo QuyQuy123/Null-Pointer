@@ -6,7 +6,6 @@ interface DirectionsScreenProps {
   floor: string;
   distance: string;
   onArrived: () => void;
-  onNotFound: () => void;
   onBack: () => void;
 }
 
@@ -17,7 +16,7 @@ const directionSteps = [
   "Phòng X-quang 03 ở bên tay phải, cách thang máy khoảng 60 mét.",
 ];
 
-export function DirectionsScreen({ destination, floor, distance, onArrived, onNotFound, onBack }: DirectionsScreenProps) {
+export function DirectionsScreen({ destination, floor, distance, onArrived, onBack }: DirectionsScreenProps) {
   return (
     <div className="flex flex-col min-h-full bg-background pb-6">
       <AppHeader
@@ -115,13 +114,6 @@ export function DirectionsScreen({ destination, floor, distance, onArrived, onNo
           style={{ fontSize: 17, minHeight: 56 }}
         >
           Tôi đã đến
-        </button>
-        <button
-          onClick={onNotFound}
-          className="w-full py-3 rounded-xl border border-border bg-card text-foreground text-center"
-          style={{ fontSize: 15, minHeight: 48 }}
-        >
-          Không tìm thấy phòng
         </button>
       </div>
     </div>

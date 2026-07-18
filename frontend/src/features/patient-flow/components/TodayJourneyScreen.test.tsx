@@ -48,7 +48,6 @@ describe('TodayJourneyScreen', () => {
         route={route}
         currentStep={0}
         onShowDirections={() => undefined}
-        onNeedSupport={() => undefined}
         onStepDone={onStepDone}
       />,
     )

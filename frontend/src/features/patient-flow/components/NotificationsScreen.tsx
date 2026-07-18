@@ -5,6 +5,7 @@ import {
   Loader2,
   RefreshCw,
   Route,
+  ArrowLeft,
 } from "lucide-react";
 import type { PatientActivity } from "../../../entities/patient/model/patient-activity.schemas";
 
@@ -13,6 +14,7 @@ interface NotificationsScreenProps {
   isLoading: boolean;
   hasError: boolean;
   onRetry: () => void;
+  onBack: () => void;
 }
 
 const timeFormatter = new Intl.DateTimeFormat("vi-VN", {
@@ -35,16 +37,29 @@ export function NotificationsScreen({
   isLoading,
   hasError,
   onRetry,
+  onBack,
 }: NotificationsScreenProps) {
   const newestFirst = activities.toReversed();
 
   return (
-    <div className="flex flex-col min-h-full bg-background pb-24">
+    <div className="flex flex-col min-h-full bg-background pb-8">
       <div className="bg-card border-b border-border px-4 pt-12 pb-4">
-        <h1 style={{ fontSize: 20 }} className="text-foreground">Thông báo và hoạt động</h1>
-        <p style={{ fontSize: 13 }} className="text-muted-foreground mt-1">
-          Dữ liệu được đọc từ nhật ký backend của bệnh nhân.
-        </p>
+        <div className="flex items-start gap-3">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-border bg-card"
+            aria-label="Quay lại màn hình chính"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <h1 style={{ fontSize: 20 }} className="text-foreground">Thông báo và hoạt động</h1>
+            <p style={{ fontSize: 13 }} className="text-muted-foreground mt-1">
+              Dữ liệu được đọc từ nhật ký máy chủ của bệnh nhân.
+            </p>
+          </div>
+        </div>
       </div>
 
       {isLoading ? (

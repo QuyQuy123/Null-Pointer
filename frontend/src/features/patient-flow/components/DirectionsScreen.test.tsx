@@ -18,7 +18,6 @@ describe('DirectionsScreen', () => {
         floor="Tầng 2"
         distance="Di chuyển dự kiến 4 phút"
         onServiceCompleted={onServiceCompleted}
-        onNotFound={() => undefined}
         onBack={() => undefined}
       />,
     )

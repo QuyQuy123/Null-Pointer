@@ -13,6 +13,7 @@ import {
   FileText,
   Timer,
   Loader2,
+  Bell,
 } from "lucide-react";
 import type { ScheduleStrategy } from "../model/patient-flow.types";
 import type {
@@ -34,7 +35,7 @@ interface DashboardScreenProps {
   onRegenerateJourney: (strategy: ScheduleStrategy) => void;
   onCompleteCurrentService: () => void;
   onViewMap: () => void;
-  onOpenSupport: () => void;
+  onOpenNotifications: () => void;
 }
 
 type MenuTab = "today" | "orders" | "schedule";
@@ -98,7 +99,7 @@ export function DashboardScreen({
   onRegenerateJourney,
   onCompleteCurrentService,
   onViewMap,
-  onOpenSupport,
+  onOpenNotifications,
 }: DashboardScreenProps) {
   const [activeTab, setActiveTab] = useState<MenuTab>("today");
   const patientName = order.patient_name;
@@ -118,6 +119,14 @@ export function DashboardScreen({
             </div>
             <span style={{ fontSize: 15 }} className="text-white">Bệnh viện Đa khoa TW</span>
           </div>
+          <button
+            type="button"
+            onClick={onOpenNotifications}
+            className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/15 transition-colors active:bg-white/25"
+            aria-label="Thông báo và hoạt động"
+          >
+            <Bell size={20} className="text-white" />
+          </button>
         </div>
 
         {/* Patient info card */}
@@ -197,7 +206,6 @@ export function DashboardScreen({
             onRegenerateJourney={onRegenerateJourney}
             onCompleteCurrentService={onCompleteCurrentService}
             onViewMap={onViewMap}
-            onOpenSupport={onOpenSupport}
           />
         )}
       </div>
@@ -394,7 +402,6 @@ function ScheduleTab({
   onRegenerateJourney,
   onCompleteCurrentService,
   onViewMap,
-  onOpenSupport,
 }: {
   order: ClinicalOrderDispatch;
   scheduleStrategy: ScheduleStrategy;
@@ -403,7 +410,6 @@ function ScheduleTab({
   onRegenerateJourney: (strategy: ScheduleStrategy) => void;
   onCompleteCurrentService: () => void;
   onViewMap: () => void;
-  onOpenSupport: () => void;
 }) {
   const [priorityOpen, setPriorityOpen] = useState(false);
   const [showCompletionConfirmation, setShowCompletionConfirmation] = useState(false);
@@ -698,22 +704,14 @@ function ScheduleTab({
           </div>
 
           {/* Nút hành động */}
-          <div className="px-4 pb-4 flex gap-2">
+          <div className="px-4 pb-4">
             <button
               onClick={onViewMap}
-              className="flex-1 py-3 bg-primary text-primary-foreground rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+              className="w-full py-3 bg-primary text-primary-foreground rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
               style={{ fontSize: 14, minHeight: 48 }}
             >
               <Map size={16} />
               Xem bản đồ đầy đủ
-            </button>
-            <button
-              type="button"
-              onClick={onOpenSupport}
-              className="px-4 py-3 border border-border bg-card text-foreground rounded-xl"
-              style={{ fontSize: 14, minHeight: 48 }}
-            >
-              Hỗ trợ xe lăn
             </button>
           </div>
         </div>

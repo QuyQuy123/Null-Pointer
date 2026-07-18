@@ -5,7 +5,6 @@ import { AppHeader } from "./AppHeader";
 interface NewPrescriptionScreenProps {
   onBack?: () => void;
   onContinue: () => void;
-  onRequestSupport: () => void;
 }
 
 const services = [
@@ -32,7 +31,7 @@ const services = [
   },
 ];
 
-export function NewPrescriptionScreen({ onBack, onContinue, onRequestSupport }: NewPrescriptionScreenProps) {
+export function NewPrescriptionScreen({ onBack, onContinue }: NewPrescriptionScreenProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -148,13 +147,6 @@ export function NewPrescriptionScreen({ onBack, onContinue, onRequestSupport }: 
           {!isLoading && <ChevronRight size={20} />}
         </button>
 
-        <button
-          onClick={onRequestSupport}
-          className="w-full py-3 rounded-xl border border-border bg-card text-foreground text-center"
-          style={{ fontSize: 15, minHeight: 48 }}
-        >
-          Nhờ nhân viên hỗ trợ
-        </button>
       </div>
     </div>
   );

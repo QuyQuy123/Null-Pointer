@@ -1,4 +1,4 @@
-import { Bell, AlertCircle, CheckCircle2, Clock, Info } from "lucide-react";
+import { Bell, AlertCircle, CheckCircle2, Clock, Info, ArrowLeft } from "lucide-react";
 
 interface Notification {
   id: string;
@@ -58,15 +58,25 @@ const bgColors: Record<string, string> = {
   reminder: "bg-violet-50 border-violet-200",
 };
 
-export function NotificationsScreen() {
+export function NotificationsScreen({ onBack }: { onBack: () => void }) {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="flex flex-col min-h-full bg-background pb-24">
+    <div className="flex flex-col min-h-full bg-background pb-8">
       {/* Header */}
       <div className="bg-card border-b border-border px-4 pt-12 pb-4">
-        <div className="flex items-center justify-between">
-          <h1 style={{ fontSize: 20 }} className="text-foreground">Thông báo</h1>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onBack}
+              className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-card"
+              aria-label="Quay lại màn hình chính"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <h1 style={{ fontSize: 20 }} className="text-foreground">Thông báo</h1>
+          </div>
           {unreadCount > 0 && (
             <span className="bg-primary text-primary-foreground px-2.5 py-0.5 rounded-full" style={{ fontSize: 13 }}>
               {unreadCount} mới

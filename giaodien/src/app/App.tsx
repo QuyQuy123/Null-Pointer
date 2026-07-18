@@ -13,11 +13,7 @@ import { WaitingScreen } from "./components/WaitingScreen";
 import { DirectionsScreen } from "./components/DirectionsScreen";
 import { RouteChangeProposal } from "./components/RouteChangeProposal";
 import { CompletionScreen } from "./components/CompletionScreen";
-import { NavigationBar } from "./components/NavigationBar";
-import type { NavTab } from "./components/NavigationBar";
 import { NotificationsScreen } from "./components/NotificationsScreen";
-import { SupportScreen } from "./components/SupportScreen";
-import { JourneyOverviewScreen } from "./components/JourneyOverviewScreen";
 import { MapScreen } from "./components/MapScreen";
 
 type Screen =
@@ -31,10 +27,8 @@ type Screen =
   | "todayJourney"
   | "waiting"
   | "directions"
+  | "notifications"
   | "complete";
-
-const isJourneyScreen = (screen: Screen) =>
-  ["todayJourney", "waiting", "complete"].includes(screen);
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("dashboard");
@@ -42,7 +36,6 @@ export default function App() {
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
   const [viewDetailRoute, setViewDetailRoute] = useState<Route | null>(null);
   const [journeyStep, setJourneyStep] = useState<JourneyStep>(0);
-  const [activeTab, setActiveTab] = useState<NavTab>("today");
   const [prevScreen, setPrevScreen] = useState<Screen>("todayJourney");
   const [showRouteChange, setShowRouteChange] = useState(false);
 
@@ -65,20 +58,6 @@ export default function App() {
 
   const currentRoute = selectedRoute ?? viewDetailRoute;
 
-  // Tab overlay content
-  function renderTabContent() {
-    if (!isJourneyScreen(screen) && screen !== "directions") return null;
-    if (activeTab === "notifications") return <NotificationsScreen />;
-    if (activeTab === "support") return <SupportScreen onCallStaff={() => {}} />;
-    if (activeTab === "journey" && currentRoute) {
-      return <JourneyOverviewScreen route={currentRoute} currentStep={journeyStep} />;
-    }
-    return null;
-  }
-
-  const tabContent = renderTabContent();
-  const showBottomNav = isJourneyScreen(screen) || screen === "directions";
-
   return (
     <div
       className="relative bg-background"
@@ -99,6 +78,7 @@ export default function App() {
           <DashboardScreen
             onStartJourney={() => nav("newPrescription")}
             onViewMap={() => nav("mapView")}
+            onOpenNotifications={() => nav("notifications")}
           />
         )}
 
@@ -112,7 +92,6 @@ export default function App() {
           <NewPrescriptionScreen
             onBack={() => nav("dashboard")}
             onContinue={() => nav("choosePriority")}
-            onRequestSupport={() => nav("choosePriority")}
           />
         )}
 
@@ -145,53 +124,47 @@ export default function App() {
           <ConfirmScreen
             route={selectedRoute}
             onBack={() => nav("chooseRoute")}
-            onConfirmed={() => { setActiveTab("today"); nav("todayJourney"); }}
+            onConfirmed={() => nav("todayJourney")}
             onChooseAnother={() => nav("chooseRoute")}
           />
         )}
 
-        {/* ── Journey screens with tab overlay ── */}
-        {isJourneyScreen(screen) && tabContent ? (
-          tabContent
-        ) : (
-          <>
-            {screen === "todayJourney" && currentRoute && (
-              <TodayJourneyScreen
-                route={currentRoute}
-                currentStep={journeyStep}
-                onShowDirections={() => { setPrevScreen("todayJourney"); nav("directions"); }}
-                onNeedSupport={() => { setActiveTab("support"); }}
-                onStepDone={handleStepDone}
-                onShowRouteChange={() => setShowRouteChange(true)}
-              />
-            )}
+        {screen === "todayJourney" && currentRoute && (
+          <TodayJourneyScreen
+            route={currentRoute}
+            currentStep={journeyStep}
+            onShowDirections={() => { setPrevScreen("todayJourney"); nav("directions"); }}
+            onStepDone={handleStepDone}
+            onShowRouteChange={() => setShowRouteChange(true)}
+          />
+        )}
 
-            {screen === "waiting" && currentRoute && (
-              <WaitingScreen
-                route={currentRoute}
-                currentStep={journeyStep}
-                onNext={() => nav("todayJourney")}
-                onNeedSupport={() => setActiveTab("support")}
-              />
-            )}
+        {screen === "waiting" && currentRoute && (
+          <WaitingScreen
+            route={currentRoute}
+            currentStep={journeyStep}
+            onNext={() => nav("todayJourney")}
+          />
+        )}
 
-            {screen === "directions" && (
-              <DirectionsScreen
-                destination={stepLocations[journeyStep]}
-                floor={stepFloors[journeyStep]}
-                distance={stepDistances[journeyStep]}
-                onArrived={() => nav("waiting")}
-                onNotFound={() => setActiveTab("support")}
-                onBack={() => nav(prevScreen)}
-              />
-            )}
+        {screen === "directions" && (
+          <DirectionsScreen
+            destination={stepLocations[journeyStep]}
+            floor={stepFloors[journeyStep]}
+            distance={stepDistances[journeyStep]}
+            onArrived={() => nav("waiting")}
+            onBack={() => nav(prevScreen)}
+          />
+        )}
 
-            {screen === "complete" && (
-              <CompletionScreen
-                onShowDirections={() => { setPrevScreen("complete"); nav("directions"); }}
-              />
-            )}
-          </>
+        {screen === "complete" && (
+          <CompletionScreen
+            onShowDirections={() => { setPrevScreen("complete"); nav("directions"); }}
+          />
+        )}
+
+        {screen === "notifications" && (
+          <NotificationsScreen onBack={() => nav("dashboard")} />
         )}
       </div>
 
@@ -200,19 +173,6 @@ export default function App() {
         <RouteChangeProposal
           onAccept={() => setShowRouteChange(false)}
           onDecline={() => setShowRouteChange(false)}
-          onRequestSupport={() => { setShowRouteChange(false); setActiveTab("support"); }}
-        />
-      )}
-
-      {/* Bottom navigation — only on journey screens */}
-      {showBottomNav && (
-        <NavigationBar
-          activeTab={activeTab}
-          onTabChange={(tab) => {
-            setActiveTab(tab);
-            if (tab === "today" && screen !== "todayJourney") nav("todayJourney");
-          }}
-          notificationCount={2}
         />
       )}
     </div>

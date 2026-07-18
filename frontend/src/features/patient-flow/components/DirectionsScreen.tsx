@@ -10,11 +10,10 @@ interface DirectionsScreenProps {
   floor: string;
   distance: string;
   onServiceCompleted: () => void;
-  onNotFound: () => void;
   onBack: () => void;
 }
 
-export function DirectionsScreen({ origin, destination, roomCode, floor, distance, onServiceCompleted, onNotFound, onBack }: DirectionsScreenProps) {
+export function DirectionsScreen({ origin, destination, roomCode, floor, distance, onServiceCompleted, onBack }: DirectionsScreenProps) {
   const [showCompletionConfirmation, setShowCompletionConfirmation] = useState(false);
   const directionSteps = [
     `Rời ${origin} và đi theo hành lang chính đến khu thang máy hoặc cầu thang gần nhất.`,
@@ -105,13 +104,6 @@ export function DirectionsScreen({ origin, destination, roomCode, floor, distanc
         >
           <CheckCircle2 size={20} />
           Tôi đã khám xong
-        </button>
-        <button
-          onClick={onNotFound}
-          className="w-full py-3 rounded-xl border border-border bg-card text-foreground text-center"
-          style={{ fontSize: 15, minHeight: 48 }}
-        >
-          Không tìm thấy phòng
         </button>
       </div>
 

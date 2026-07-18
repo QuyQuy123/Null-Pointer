@@ -9,7 +9,6 @@ interface NewPrescriptionScreenProps {
   order: ClinicalOrderDispatch;
   onBack?: () => void;
   onContinue: () => void;
-  onRequestSupport: () => void;
 }
 
 const serviceIcons: Record<ClinicalOrderItem["room_service_type"], string> = {
@@ -52,7 +51,7 @@ function getPreparationNote(order: ClinicalOrderDispatch) {
   return `Lưu ý chuẩn bị: ${fastingServices.map((item) => getServiceNote(item)).join("; ")}.`;
 }
 
-export function NewPrescriptionScreen({ order, onBack, onContinue, onRequestSupport }: NewPrescriptionScreenProps) {
+export function NewPrescriptionScreen({ order, onBack, onContinue }: NewPrescriptionScreenProps) {
   const firstServiceCode = order.route_proposal.options[0]?.steps.find(
     (step) => step.service_code !== "doctor_return",
   )?.service_code;
@@ -170,13 +169,6 @@ export function NewPrescriptionScreen({ order, onBack, onContinue, onRequestSupp
           <ChevronRight size={20} />
         </button>
 
-        <button
-          onClick={onRequestSupport}
-          className="w-full py-3 rounded-xl border border-border bg-card text-foreground text-center"
-          style={{ fontSize: 15, minHeight: 48 }}
-        >
-          Nhờ nhân viên hỗ trợ
-        </button>
       </div>
     </div>
   );

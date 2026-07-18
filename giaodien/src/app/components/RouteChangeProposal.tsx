@@ -3,10 +3,9 @@ import { AlertCircle, X, ChevronRight, Shield } from "lucide-react";
 interface RouteChangeProposalProps {
   onAccept: () => void;
   onDecline: () => void;
-  onRequestSupport: () => void;
 }
 
-export function RouteChangeProposal({ onAccept, onDecline, onRequestSupport }: RouteChangeProposalProps) {
+export function RouteChangeProposal({ onAccept, onDecline }: RouteChangeProposalProps) {
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex flex-col justify-end" style={{ maxWidth: 430, margin: "0 auto" }}>
       <div className="bg-card rounded-t-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
@@ -86,13 +85,6 @@ export function RouteChangeProposal({ onAccept, onDecline, onRequestSupport }: R
               style={{ fontSize: 15, minHeight: 48 }}
             >
               Giữ lộ trình hiện tại
-            </button>
-            <button
-              onClick={onRequestSupport}
-              className="w-full py-2.5 text-muted-foreground text-center"
-              style={{ fontSize: 14 }}
-            >
-              Nhờ hỗ trợ
             </button>
           </div>
         </div>

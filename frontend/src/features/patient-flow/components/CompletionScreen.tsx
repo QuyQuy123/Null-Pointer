@@ -19,7 +19,7 @@ export function CompletionScreen({
     (step) => step.serviceCode === "doctor_return",
   );
   return (
-    <div className="flex flex-col min-h-full bg-background pb-24">
+    <div className="flex flex-col min-h-full bg-background pb-8">
       {/* Header */}
       <div className="bg-emerald-600 text-white px-4 pt-12 pb-8 flex flex-col items-center">
         <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-3">

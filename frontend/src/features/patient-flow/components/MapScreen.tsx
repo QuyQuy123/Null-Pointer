@@ -7,7 +7,6 @@ interface MapScreenProps {
   floor: string;
   travelMinutes: number;
   onServiceCompleted: () => void;
-  onNotFound: () => void;
   onBack: () => void;
 }
 
@@ -127,7 +126,6 @@ export function MapScreen({
   floor,
   travelMinutes,
   onServiceCompleted,
-  onNotFound,
   onBack,
 }: MapScreenProps) {
   const destinationFloor = parseFloor(floor);
@@ -270,14 +268,6 @@ export function MapScreen({
         >
           <CheckCircle2 size={20} />
           Tôi đã khám xong
-        </button>
-        <button
-          type="button"
-          onClick={onNotFound}
-          className="w-full py-3 rounded-xl border border-border bg-card text-foreground text-center"
-          style={{ fontSize: 15, minHeight: 48 }}
-        >
-          Không tìm thấy phòng
         </button>
       </div>
 

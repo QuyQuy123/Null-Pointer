@@ -2,7 +2,7 @@
 
 import '@testing-library/jest-dom/vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route as RouterRoute, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ClinicalOrderDispatch } from '../../../entities/clinical-order/model/clinical-order.schemas'
@@ -165,7 +165,7 @@ describe('PatientFlowPage', () => {
       await screen.findByRole('heading', { name: 'Hành trình hôm nay' }),
     ).toBeInTheDocument()
     expect(screen.getByText('Đi tới Phòng lấy máu 113')).toBeInTheDocument()
-    expect(screen.getByRole('navigation')).toBeInTheDocument()
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument()
   })
 
   it('hiện trạng thái khôi phục thay vì thanh điều hướng đứng một mình khi chưa có lộ trình', async () => {
@@ -201,5 +201,54 @@ describe('PatientFlowPage', () => {
       screen.getByRole('button', { name: 'Tải lại dữ liệu' }),
     ).toBeInTheDocument()
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument()
+  })
+
+  it('mở thông báo từ biểu tượng chuông trên màn hình chính và quay lại được', async () => {
+    vi.mocked(getPatient).mockResolvedValue(patient)
+    vi.mocked(getLatestPatientOrder).mockResolvedValue(order)
+    vi.mocked(getTodayPatientActivities).mockResolvedValue([])
+    vi.mocked(getLatestPatientReservation).mockResolvedValue({
+      ...reservationWithOutdatedOption,
+      status: 'held',
+    })
+    vi.mocked(mapClinicalOrderRoutes).mockReturnValue([fallbackRoute])
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={['/demo/patient/BN-TEST']}>
+          <Routes>
+            <RouterRoute
+              path="/demo/patient/:patientCode"
+              element={<PatientFlowPage />}
+            />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    expect(
+      await screen.findByRole('heading', { name: 'Chỉ định mới' }),
+    ).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Quay lại' }))
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Thông báo và hoạt động' }),
+    )
+
+    expect(
+      screen.getByRole('heading', { name: 'Thông báo và hoạt động' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Quay lại màn hình chính' }),
+    )
+    expect(
+      screen.getByRole('button', { name: 'Thông báo và hoạt động' }),
+    ).toBeInTheDocument()
   })
 })

@@ -15,7 +15,6 @@ describe('MapScreen', () => {
         floor="Tầng 2"
         travelMinutes={4}
         onServiceCompleted={onServiceCompleted}
-        onNotFound={() => undefined}
         onBack={() => undefined}
       />,
     )

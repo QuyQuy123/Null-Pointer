@@ -13,11 +13,7 @@ import { TodayJourneyScreen } from "../components/TodayJourneyScreen";
 import type { JourneyStep } from "../components/TodayJourneyScreen";
 import { DirectionsScreen } from "../components/DirectionsScreen";
 import { CompletionScreen } from "../components/CompletionScreen";
-import { NavigationBar } from "../components/NavigationBar";
-import type { NavTab } from "../components/NavigationBar";
 import { NotificationsScreen } from "../components/NotificationsScreen";
-import { SupportScreen } from "../components/SupportScreen";
-import { JourneyOverviewScreen } from "../components/JourneyOverviewScreen";
 import { MapScreen } from "../components/MapScreen";
 import { getLatestPatientOrder } from "../../../entities/clinical-order/api/clinical-order-api";
 import { getPatient } from "../../../entities/patient/api/patient-api";
@@ -39,11 +35,8 @@ type Screen =
   | "confirmReserve"
   | "todayJourney"
   | "directions"
-  | "support"
+  | "notifications"
   | "complete";
-
-const isJourneyScreen = (screen: Screen) =>
-  ["todayJourney", "complete"].includes(screen);
 
 interface PatientDataStateProps {
   patientCode: string;
@@ -212,7 +205,6 @@ export default function PatientFlowPage() {
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
   const [viewDetailRoute, setViewDetailRoute] = useState<Route | null>(null);
   const [journeyStep, setJourneyStep] = useState<JourneyStep>(0);
-  const [activeTab, setActiveTab] = useState<NavTab>("today");
   const [prevScreen, setPrevScreen] = useState<Screen>("todayJourney");
   const [isRegeneratingJourney, setIsRegeneratingJourney] = useState(false);
   const [activeOrderId, setActiveOrderId] = useState(patientOrder?.id);
@@ -242,7 +234,6 @@ export default function PatientFlowPage() {
     setJourneyStep(0);
     setActiveReservation(null);
     setJourneySyncError(null);
-    setActiveTab("today");
     setIsRegeneratingJourney(false);
     setScreen("newPrescription");
   }
@@ -305,45 +296,10 @@ export default function PatientFlowPage() {
     ? `Di chuyển dự kiến ${currentStepDetail.travelMinutes} phút`
     : "Đang tính quãng đường";
 
-  const showBottomNav = Boolean(savedReservation && navigationRoute) && (
-    displayedScreen === "dashboard" ||
-    isJourneyScreen(displayedScreen) ||
-    displayedScreen === "directions"
-  );
-
   const retryJourneyData = () => {
     void patientOrderQuery.refetch();
     void patientReservationQuery.refetch();
   };
-
-  // Tab overlay content
-  function renderTabContent() {
-    if (!showBottomNav) return null;
-    if (activeTab === "notifications") {
-      return (
-        <NotificationsScreen
-          activities={patientActivitiesQuery.data ?? []}
-          isLoading={patientActivitiesQuery.isPending}
-          hasError={patientActivitiesQuery.isError}
-          onRetry={() => void patientActivitiesQuery.refetch()}
-        />
-      );
-    }
-    if (activeTab === "support") {
-      return (
-        <SupportScreen
-          encounterId={patientOrder?.encounter_id ?? "Chưa xác định"}
-          location={previousStepDetail?.roomName ?? patientOrder?.doctor_room_code ?? "Chưa xác định"}
-        />
-      );
-    }
-    if (activeTab === "journey" && navigationRoute) {
-      return <JourneyOverviewScreen route={navigationRoute} currentStep={displayedJourneyStep} />;
-    }
-    return null;
-  }
-
-  const tabContent = renderTabContent();
 
   if (!patientCode) {
     return (
@@ -396,7 +352,7 @@ export default function PatientFlowPage() {
         )}
 
         {/* ── Dashboard ── */}
-        {displayedScreen === "dashboard" && !tabContent && (
+        {displayedScreen === "dashboard" && (
           <DashboardScreen
             order={patientOrder}
             activities={patientActivitiesQuery.data ?? []}
@@ -415,10 +371,7 @@ export default function PatientFlowPage() {
             }}
             onCompleteCurrentService={handleStepDone}
             onViewMap={() => nav("mapView")}
-            onOpenSupport={() => {
-              setPrevScreen("dashboard");
-              nav("support");
-            }}
+            onOpenNotifications={() => nav("notifications")}
           />
         )}
 
@@ -430,10 +383,6 @@ export default function PatientFlowPage() {
             floor={currentFloor}
             travelMinutes={currentStepDetail?.travelMinutes ?? 0}
             onServiceCompleted={handleStepDone}
-            onNotFound={() => {
-              setPrevScreen("mapView");
-              nav("support");
-            }}
             onBack={() => nav("dashboard")}
           />
         )}
@@ -447,10 +396,6 @@ export default function PatientFlowPage() {
               nav("dashboard");
             }}
             onContinue={() => nav("choosePriority")}
-            onRequestSupport={() => {
-              setPrevScreen("newPrescription");
-              nav("support");
-            }}
           />
         )}
 
@@ -529,7 +474,6 @@ export default function PatientFlowPage() {
                 setIsRegeneratingJourney(false);
                 setActiveReservation(reservation);
                 setJourneyStep(reservation.currentStep as JourneyStep);
-                setActiveTab("today");
                 void patientOrderQuery.refetch();
                 nav("todayJourney");
               }}
@@ -545,81 +489,63 @@ export default function PatientFlowPage() {
           )
         )}
 
-        {/* ── Journey screens with tab overlay ── */}
-        {tabContent ? (
-          tabContent
-        ) : (
-          <>
-            {displayedScreen === "todayJourney" && (
-              navigationRoute ? (
-                <TodayJourneyScreen
-                  route={navigationRoute}
-                  currentStep={displayedJourneyStep}
-                  onShowDirections={() => { setPrevScreen("todayJourney"); nav("directions"); }}
-                  onNeedSupport={() => { setActiveTab("support"); }}
-                  onStepDone={handleStepDone}
-                />
-              ) : (
-                <MissingScreenData
-                  title="Chưa tải được hành trình"
-                  description="Hệ thống chưa tìm thấy lộ trình đã xác nhận. Không còn màn hình trống; bạn có thể tải lại dữ liệu hoặc quay về màn hình chính."
-                  onRetry={retryJourneyData}
-                  onBack={() => nav("dashboard")}
-                />
-              )
-            )}
+        {displayedScreen === "todayJourney" && (
+          navigationRoute ? (
+            <TodayJourneyScreen
+              route={navigationRoute}
+              currentStep={displayedJourneyStep}
+              onShowDirections={() => { setPrevScreen("todayJourney"); nav("directions"); }}
+              onStepDone={handleStepDone}
+            />
+          ) : (
+            <MissingScreenData
+              title="Chưa tải được hành trình"
+              description="Hệ thống chưa tìm thấy lộ trình đã xác nhận. Bạn có thể tải lại dữ liệu hoặc quay về màn hình chính."
+              onRetry={retryJourneyData}
+              onBack={() => nav("dashboard")}
+            />
+          )
+        )}
 
-            {displayedScreen === "directions" && (
-              <DirectionsScreen
-                origin={directionOrigin}
-                destination={currentDestination}
-                roomCode={currentStepDetail?.roomCode}
-                floor={currentFloor}
-                distance={currentDistance}
-                onServiceCompleted={handleStepDone}
-                onNotFound={() => setActiveTab("support")}
-                onBack={() => nav(prevScreen)}
-              />
-            )}
+        {displayedScreen === "directions" && (
+          <DirectionsScreen
+            origin={directionOrigin}
+            destination={currentDestination}
+            roomCode={currentStepDetail?.roomCode}
+            floor={currentFloor}
+            distance={currentDistance}
+            onServiceCompleted={handleStepDone}
+            onBack={() => nav(prevScreen)}
+          />
+        )}
 
-            {displayedScreen === "complete" && (
-              navigationRoute ? (
-                <CompletionScreen
-                  route={navigationRoute}
-                  doctorName={patientOrder.doctor_name}
-                  onBackToDashboard={() => nav("dashboard")}
-                />
-              ) : (
-                <MissingScreenData
-                  title="Chưa tải được kết quả hành trình"
-                  description="Dữ liệu lộ trình hoàn tất chưa đồng bộ. Hãy tải lại trước khi tiếp tục."
-                  onRetry={retryJourneyData}
-                  onBack={() => nav("dashboard")}
-                />
-              )
-            )}
+        {displayedScreen === "complete" && (
+          navigationRoute ? (
+            <CompletionScreen
+              route={navigationRoute}
+              doctorName={patientOrder.doctor_name}
+              onBackToDashboard={() => nav("dashboard")}
+            />
+          ) : (
+            <MissingScreenData
+              title="Chưa tải được kết quả hành trình"
+              description="Dữ liệu lộ trình hoàn tất chưa đồng bộ. Hãy tải lại trước khi tiếp tục."
+              onRetry={retryJourneyData}
+              onBack={() => nav("dashboard")}
+            />
+          )
+        )}
 
-            {displayedScreen === "support" && (
-              <SupportScreen
-                encounterId={patientOrder?.encounter_id ?? "Chưa xác định"}
-                location={previousStepDetail?.roomName ?? patientOrder?.doctor_room_code ?? "Chưa xác định"}
-                onBack={() => nav(prevScreen)}
-              />
-            )}
-          </>
+        {displayedScreen === "notifications" && (
+          <NotificationsScreen
+            activities={patientActivitiesQuery.data ?? []}
+            isLoading={patientActivitiesQuery.isPending}
+            hasError={patientActivitiesQuery.isError}
+            onRetry={() => void patientActivitiesQuery.refetch()}
+            onBack={() => nav("dashboard")}
+          />
         )}
       </div>
-
-      {/* Bottom navigation — only on journey screens */}
-      {showBottomNav && (
-        <NavigationBar
-          activeTab={activeTab}
-          onTabChange={(tab) => {
-            setActiveTab(tab);
-            if (tab === "today" && displayedScreen !== "todayJourney") nav("todayJourney");
-          }}
-        />
-      )}
     </div>
   );
 }
