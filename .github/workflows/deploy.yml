@@ -54,11 +54,11 @@ jobs:
           region: ${{ env.REGION }}
           flags: '--allow-unauthenticated --port=8010' # Ép cổng 8010 trùng khớp với Dockerfile của AI
 
-      # # 4. BUILD & DEPLOY DỊCH VỤ BACKEND
-      # - name: Build and Push Backend Image
-      #   run: |
-      #     docker build -t ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/backend-service:${{ github.sha }} ./backend
-      #     docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/backend-service:${{ github.sha }}
+      # 4. BUILD & DEPLOY DỊCH VỤ BACKEND
+      - name: Build and Push Backend Image
+        run: |
+          docker build -t ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/backend-service:${{ github.sha }} ./backend
+          docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/backend-service:${{ github.sha }}
 
       # 4. BUILD & DEPLOY DỊCH VỤ BACKEND
       - name: Deploy Backend to Cloud Run
