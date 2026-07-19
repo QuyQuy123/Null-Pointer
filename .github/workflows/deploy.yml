@@ -72,7 +72,7 @@ jobs:
             AI_SERVICE_URL=${{ steps.deploy-ai.outputs.url }}
             APP_ENV=production
             DATABASE_URL=sqlite:////tmp/nhip_vien.db
-            CORS_ORIGINS=["https://clinic-flow.live","https://www.clinic-flow.live"]
+            CORS_ORIGINS=https://clinic-flow.live;https://www.clinic-flow.live
           flags: '--allow-unauthenticated --port=8000'
           env_vars_update_strategy: 'overwrite'
       # 5. BUILD & DEPLOY DỊCH VỤ FRONTEND

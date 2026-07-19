@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -23,6 +23,28 @@ class Settings(BaseSettings):
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ]
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v):
+        if isinstance(v, str):
+            import json
+            # Try parsing as JSON first
+            try:
+                decoded = json.loads(v)
+                if isinstance(decoded, list):
+                    return [str(item).strip() for item in decoded]
+            except Exception:
+                pass
+            # Try splitting by semicolon first (to avoid Cloud Run comma-split issues)
+            if ";" in v:
+                return [origin.strip() for origin in v.split(";") if origin.strip()]
+            # Fallback to comma or space
+            for sep in (",", " "):
+                if sep in v:
+                    return [origin.strip() for origin in v.split(sep) if origin.strip()]
+            return [v.strip()]
+        return v
 
 
 @lru_cache
