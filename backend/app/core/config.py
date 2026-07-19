@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Any
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -19,7 +20,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./nhip_vien.db"
     ai_service_url: str = "http://localhost:8010"
     ai_request_timeout_seconds: float = Field(default=5.0, gt=0, le=30)
-    cors_origins: list[str] = [
+    cors_origins: Any = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ]
